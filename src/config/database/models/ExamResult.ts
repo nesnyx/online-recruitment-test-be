@@ -70,6 +70,7 @@ TestResult.init(
 
         submittedAt: {
             type: DataTypes.DATE,
+            allowNull: true,
         },
 
         score: {

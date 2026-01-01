@@ -16,20 +16,62 @@ export class UserService {
     }
 
     async createOrUpdateQuestionAnswer(userId: string, optionId: string, questionId: string) {
-        const existingUser = await this.userRepository.findByUserId(userId)
-        if (!existingUser) {
-            throw new AppError("User not found", 404)
-        }
-        const existingQuestion = await this.adminRepository.findQuestionByID(questionId)
-        if (!existingQuestion) {
-            throw new AppError("Question not found", 404)
-        }
+        const [existingUser, existingQuestion] = await Promise.all([
+            this.userRepository.findByUserId(userId),
+            this.adminRepository.findQuestionByID(questionId)
+        ])
+        if (!existingUser) throw new AppError("User not found", 404)
+        if (!existingQuestion) throw new AppError("Question not found", 404)
         const user = await this.userRepository.createOrUpdateQuestionAnswer(userId, optionId, questionId)
         return user
     }
 
+    async findQuestionExam(examId: string) {
+        const [existingExam, questions] = await Promise.all([
+            this.adminRepository.findExamByID(examId),
+            this.userRepository.findQuestionExam(examId)
+        ])
+        if (!existingExam) throw new AppError("Exam not found", 404)
+        if (!questions) throw new AppError("Questions not found", 404)
 
-    async startExam(userId: string, examId: string, submittedAt: Date) {
+        return {
+            exam: {
+                id: existingExam.id,
+                title: existingExam.title,
+                durationMinutes: existingExam.durationMinutes,
+            },
+            questions: questions
+        }
+    }
+
+    async findQuestionAnswerByUserId(userId: string) {
+        const questionAnswers = await this.userRepository.findQuestionAnswerByUserId(userId)
+        return questionAnswers
+    }
+
+
+    async checkStatusExamHappening(userId: string, examId: string) {
+        const [existingUser, existingExam] = await Promise.all([
+            this.userRepository.findByUserId(userId),
+            this.adminRepository.findExamByID(examId)
+        ])
+        if (!existingUser) throw new AppError("User not found", 404)
+        if (!existingExam) throw new AppError("Exam not found", 404)
+
+        const timeNow = new Date();
+        const durationMilliSeconds = (existingExam.durationMinutes ?? 0) * 60 * 1000;
+        const timeDiff = timeNow.getTime() - existingExam.startAt.getTime();
+
+        return {
+            "user_id": existingUser.id,
+            "remaining_duration": durationMilliSeconds - timeDiff,
+            "is_exam_ongoing": timeDiff < durationMilliSeconds
+        }
+    }
+
+
+
+    async startExam(userId: string, examId: string) {
         const timeNow = new Date();
 
         // OPTIMASI 1: Jalankan pengecekan User dan Exam secara PARALEL
@@ -64,7 +106,6 @@ export class UserService {
                 userId,
                 examId,
                 timeNow,        // startedAt
-                submittedAt,
                 0,              // score
                 0,              // correctCount
                 0,              // totalQuestions
@@ -76,6 +117,7 @@ export class UserService {
     }
 
 
+    // DEVELOPMENT STEP
     async submitExam(userId: string) {
         const user = await this.userRepository.findByUserId(userId)
         if (!user) {
