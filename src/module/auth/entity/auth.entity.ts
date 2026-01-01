@@ -16,10 +16,10 @@ export class AuthRepository implements IAuthRepository {
     async loginAdmin(payload: AuthDto): Promise<Admin> {
         const admin = await this.admin.findOne({ where: { username: payload.username } })
         if (!admin) {
-            throw new AppError('Admin not found')
+            throw new AppError('Admin not found', 404)
         }
         if (admin.password != payload.password) {
-            throw new AppError('Invalid password')
+            throw new AppError('Invalid password', 401)
         }
         return admin
     }
@@ -27,10 +27,10 @@ export class AuthRepository implements IAuthRepository {
     async loginUser(payload: AuthDto): Promise<User> {
         const user = await this.user.findOne({ where: { name: payload.username } })
         if (!user) {
-            throw new AppError('User not found')
+            throw new AppError('User not found', 404)
         }
         if (user.password != payload.password) {
-            throw new AppError('Invalid password')
+            throw new AppError('Invalid password', 401)
         }
         return user
     }

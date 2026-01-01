@@ -34,7 +34,7 @@ auth.post("/login/admin", validate(LoginSchema), async (req: Request, res: Respo
         })
     } catch (error: any) {
         if (error instanceof AppError) {
-            return res.status(400).json({
+            return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
@@ -57,7 +57,7 @@ auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Respon
         res.status(200).json(user)
     } catch (error: any) {
         if (error instanceof AppError) {
-            return res.status(400).json({
+            return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
@@ -80,7 +80,7 @@ auth.post("/register/admin", validate(LoginSchema), async (req: Request, res: Re
         res.status(200).json(admin)
     } catch (error) {
         if (error instanceof AppError) {
-            return res.status(400).json({
+            return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
@@ -101,7 +101,7 @@ auth.get("/me", authMiddleware, async (req: Request, res: Response) => {
         res.status(200).json(user)
     } catch (error) {
         if (error instanceof AppError) {
-            return res.status(400).json({
+            return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });

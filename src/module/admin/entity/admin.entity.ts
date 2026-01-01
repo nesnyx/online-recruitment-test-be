@@ -14,8 +14,10 @@ import { CreateQuestionType } from "../dto/create-question.dto"
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
     createUserAccount(payload: CreateAccountType): Promise<User>
-    // createSchedule(payload: CreateScheduleType): Promise<CreateScheduleType>
+
     createExam(payload: CreateExamType): Promise<Test>
+    findQuestionByID(id: string): Promise<Question>
+    findExamByID(id: string): Promise<Test>
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
 }
@@ -25,7 +27,7 @@ export class AdminRepository implements IAdminRepository {
     async findUserAccountByID(id: string): Promise<User> {
         const userAccount = await this.user.findByPk(id)
         if (!userAccount) {
-            throw new AppError('User account not found')
+            throw new AppError('User account not found', 404)
         }
         return userAccount
     }
@@ -40,6 +42,21 @@ export class AdminRepository implements IAdminRepository {
     }
     async createQuestion(payload: CreateQuestionType): Promise<Question> {
         return await this.question.create(payload)
+    }
+
+    async findExamByID(id: string): Promise<Test> {
+        const exam = await this.exam.findByPk(id)
+        if (!exam) {
+            throw new AppError('Exam not found', 404)
+        }
+        return exam
+    }
+    async findQuestionByID(id: string): Promise<Question> {
+        const question = await this.question.findByPk(id)
+        if (!question) {
+            throw new AppError('Question not found', 404)
+        }
+        return question
     }
 
 }
