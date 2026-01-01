@@ -3,7 +3,7 @@ import { AppError } from "../../../utils/app-error";
 import { AuthDto } from "../dto/auth.dto";
 import { IAuthRepository } from "../entity/auth.entity";
 
-enum Role {
+export enum Role {
     ADMIN = 'ADMIN',
     USER = 'USER'
 }

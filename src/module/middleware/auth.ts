@@ -28,3 +28,12 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
         return res.status(401).json({ message: "Unauthorized" })
     }
 }
+
+
+export const roleMiddleware = (role: string) => (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user
+    if (!user || user.role !== role) {
+        return res.status(401).json({ message: "Unauthorized" })
+    }
+    next()
+}
