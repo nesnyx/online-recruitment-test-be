@@ -43,5 +43,12 @@ QuestionAnswer.init(
     {
         sequelize,
         tableName: "question_answers",
+        indexes: [
+            {
+                unique: true,
+                fields: ['userId', 'questionId'],
+                name: 'unique_user_answer_per_question'
+            }
+        ]
     }
 );

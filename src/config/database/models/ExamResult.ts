@@ -1,19 +1,22 @@
 import { DataTypes, Model, Optional } from "sequelize";
 import { sequelize } from "../database";
 
-export type TestResultStatus = "ONGOING" | "SUBMITTED" | "TIMEOUT";
+
+export enum TestResultStatus {
+    ONGOING = "ONGOING",
+    SUBMITTED = "SUBMITTED",
+    TIMEOUT = "TIMEOUT"
+}
 
 interface TestResultAttributes {
     id: string;
     userId: string;
     testId: string;
-
     startedAt: Date;
     submittedAt?: Date;
-
-    score: number;
-    correctCount: number;
-    totalQuestions: number;
+    score?: number;
+    correctCount?: number;
+    totalQuestions?: number;
 
     status: TestResultStatus;
 }

@@ -18,6 +18,7 @@ export interface IAdminRepository {
     createExam(payload: CreateExamType): Promise<Test>
     findQuestionByID(id: string): Promise<Question>
     findExamByID(id: string): Promise<Test>
+    findQuestionsByExamID(id: string): Promise<Question[]>
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
 }
@@ -57,6 +58,13 @@ export class AdminRepository implements IAdminRepository {
             throw new AppError('Question not found', 404)
         }
         return question
+    }
+    async findQuestionsByExamID(id: string): Promise<Question[]> {
+        const questions = await this.question.findAll({ where: { testId: id } })
+        if (!questions) {
+            throw new AppError('Questions not found', 404)
+        }
+        return questions
     }
 
 }

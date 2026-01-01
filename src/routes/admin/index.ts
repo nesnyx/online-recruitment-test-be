@@ -145,6 +145,30 @@ admin.post("/exams/:examId/questions", async (req: Request, res: Response) => {
     }
 })
 
+admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
+    try {
+        const examId = req.params.examId
+        const exam = await adminService.findExamByID(examId)
+        const questions = await adminService.findQuestionsByExamID(exam.id)
+        res.status(200).json({
+            exam,
+            questions
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+
 admin.get("/exams/:examId", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
@@ -163,3 +187,5 @@ admin.get("/exams/:examId", async (req: Request, res: Response) => {
         });
     }
 })
+
+

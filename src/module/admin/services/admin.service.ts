@@ -54,4 +54,8 @@ export class AdminService {
     async createQuestion(payload: CreateQuestionType): Promise<Question> {
         return await this.adminRepository.createQuestion(payload)
     }
+
+    async findQuestionsByExamID(id: string): Promise<Question[]> {
+        return await this.adminRepository.findQuestionsByExamID(id)
+    }
 }
