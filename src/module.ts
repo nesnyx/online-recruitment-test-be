@@ -4,10 +4,12 @@ import { json, urlencoded } from 'body-parser';
 import { Sequelize } from "sequelize";
 import "./config/database/models"
 import { router } from "./routes";
+import morgan from "morgan"
 export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
         app.use(cors())
+        app.use(morgan("dev"))
         app.use(json())
         app.use("/api/v1", router)
         app.use(urlencoded({ extended: true }))
