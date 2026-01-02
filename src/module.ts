@@ -20,7 +20,7 @@ export class ApplicationModule {
         const PORT = 3002
         await this.sequelize.authenticate()
         console.log('Database connection has been established successfully.')
-        await this.sequelize.sync({ alter: true })
+        await this.sequelize.sync()
         console.log('Database synchronized successfully.')
 
         this.app.listen(PORT, () => {

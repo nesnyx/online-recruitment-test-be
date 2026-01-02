@@ -1,5 +1,4 @@
 import { User } from "./User";
-import { Admin } from "./Admin";
 import { Test } from "./Exam";
 import { Question } from "./Question";
 import { Option } from "./Option";
