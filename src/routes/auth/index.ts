@@ -4,19 +4,13 @@ import { Admin } from "../../config/database/models/Admin";
 import { User } from "../../config/database/models/User";
 import { AuthService } from "../../module/auth/services/auth.service";
 import { validate } from "../../module/middleware/validate";
-import * as v from "valibot"
 import { AuthDto } from "../../module/auth/dto/auth.dto";
 import { authMiddleware } from "../../module/middleware/auth";
 import { AppError } from "../../utils/app-error";
+import { LoginSchema, RegisterSchema } from "./validation";
 
-const LoginSchema = v.object({
-    username: v.pipe(v.string(), v.minLength(4), v.maxLength(20)),
-    password: v.pipe(v.string(), v.minLength(8), v.maxLength(20)),
-});
 
 export const auth = express.Router()
-
-
 const authRepository = new AuthRepository(Admin, User)
 const authService = new AuthService(authRepository)
 
@@ -69,7 +63,7 @@ auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Respon
     }
 })
 
-auth.post("/register/admin", validate(LoginSchema), async (req: Request, res: Response) => {
+auth.post("/register/admin", validate(RegisterSchema), async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {
@@ -91,9 +85,6 @@ auth.post("/register/admin", validate(LoginSchema), async (req: Request, res: Re
         });
     }
 })
-
-
-
 
 auth.get("/me", authMiddleware, async (req: Request, res: Response) => {
     try {

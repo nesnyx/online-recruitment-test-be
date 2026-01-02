@@ -5,6 +5,7 @@ import { Sequelize } from "sequelize";
 import "./config/database/models"
 import { router } from "./routes";
 import morgan from "morgan"
+import { ENV } from "./config/env";
 export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
@@ -17,7 +18,7 @@ export class ApplicationModule {
     }
 
     async start() {
-        const PORT = 3002
+        const PORT = ENV.PORT
         await this.sequelize.authenticate()
         console.log('Database connection has been established successfully.')
         await this.sequelize.sync()

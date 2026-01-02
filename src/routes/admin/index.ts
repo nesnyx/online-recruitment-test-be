@@ -13,6 +13,8 @@ import { CreateQuestionType } from "../../module/admin/dto/create-question.dto";
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth";
 import { generateSecureRandomPassword } from "../../utils/generate-password";
 import { Role } from "../../module/auth/services/auth.service";
+import { validate } from "../../module/middleware/validate";
+import { ExamSchema, GenerateAccountSchema } from "./validation";
 
 export const admin = express.Router()
 
@@ -20,12 +22,13 @@ const adminRepository = new AdminRepository(User, Test, Option, Question)
 const adminService = new AdminService(adminRepository)
 
 admin.use(authMiddleware, roleMiddleware(Role.ADMIN))
-admin.post("/accounts", async (req: Request, res: Response) => {
+
+admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, res: Response) => {
     try {
-        const { name, email } = req.body
+        const { username, email } = req.body
         const password = generateSecureRandomPassword()
         const payload: CreateAccountType = {
-            name,
+            name: username,
             password,
             email
         }
@@ -67,7 +70,7 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
     }
 })
 
-admin.post("/exams", async (req: Request, res: Response) => {
+admin.post("/exams", validate(ExamSchema), async (req: Request, res: Response) => {
     try {
         const { title, description, startAt, endAt, durationMinutes } = req.body
         const payload: CreateExamType = {
