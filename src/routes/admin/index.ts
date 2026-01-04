@@ -14,7 +14,7 @@ import { authMiddleware, roleMiddleware } from "../../module/middleware/auth";
 import { generateSecureRandomPassword } from "../../utils/generate-password";
 import { Role } from "../../module/auth/services/auth.service";
 import { validate } from "../../module/middleware/validate";
-import { ExamSchema, GenerateAccountSchema } from "./validation";
+import { GenerateAccountSchema } from "./validation";
 
 export const admin = express.Router()
 
@@ -117,7 +117,7 @@ admin.get("/exams", async (req: Request, res: Response) => {
     }
 })
 
-admin.post("/exams", validate(ExamSchema), async (req: Request, res: Response) => {
+admin.post("/exams", async (req: Request, res: Response) => {
     try {
         const { title, description, startAt, endAt, durationMinutes } = req.body
         const payload: CreateExamType = {
@@ -171,6 +171,28 @@ admin.post("/questions/:questionId/options", async (req: Request, res: Response)
     }
 })
 
+admin.get("/questions/:questionId/options", async (req: Request, res: Response) => {
+    const questionId = req.params.questionId
+    try {
+        const options = await adminService.getOptionsByQuestionID(questionId)
+        res.status(200).json({
+            status: true,
+            data: options
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
 admin.post("/exams/:examId/questions", async (req: Request, res: Response) => {
     const examId = req.params.examId
     try {
@@ -199,11 +221,9 @@ admin.post("/exams/:examId/questions", async (req: Request, res: Response) => {
 admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
-        const exam = await adminService.findExamByID(examId)
-        const questions = await adminService.findQuestionsByExamID(exam.id)
+        const exam = await adminService.getQuestionWithOptions(examId)
         res.status(200).json({
-            exam,
-            questions
+            data: exam,
         })
     } catch (error) {
         if (error instanceof AppError) {
@@ -212,12 +232,14 @@ admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
                 message: error.message
             });
         }
+        console.log(error)
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
         });
     }
 })
+
 
 
 admin.get("/exams/:examId", async (req: Request, res: Response) => {

@@ -20,28 +20,28 @@ export const ExamSchema = v.pipe(
             v.minValue(1) // pengganti positive()
         ),
 
-        startAt: v.pipe(
-            v.date(),
-            v.custom(
-                (date: any) => date.getTime() > Date.now(),
-                () => "startAt must be in the future"
-            )
-        ),
+        // startAt: v.pipe(
+        //     v.date(),
+        //     v.custom(
+        //         (date: any) => date.getTime() > Date.now(),
+        //         () => "startAt must be in the future"
+        //     )
+        // ),
 
-        endAt: v.pipe(
-            v.date(),
-            v.custom(
-                (date: any) => date.getTime() > Date.now(),
-                () => "endAt must be in the future"
-            )
-        ),
+        // endAt: v.pipe(
+        //     v.date(),
+        //     v.custom(
+        //         (date: any) => date.getTime() > Date.now(),
+        //         () => "endAt must be in the future"
+        //     )
+        // ),
     }),
 
     // validasi antar field
-    v.custom(
-        (data: any) => data.endAt.getTime() > data.startAt.getTime(),
-        () => "endAt must be later than startAt"
-    )
+    // v.custom(
+    //     (data: any) => data.endAt.getTime() > data.startAt.getTime(),
+    //     () => "endAt must be later than startAt"
+    // )
 );
 
 

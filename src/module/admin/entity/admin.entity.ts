@@ -8,9 +8,6 @@ import { CreateExamType } from "../dto/create-exam.dto"
 import { CreateOptionType } from "../dto/create-option.dto"
 import { CreateQuestionType } from "../dto/create-question.dto"
 
-
-
-
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
     createUserAccount(payload: CreateAccountType): Promise<User>
@@ -19,7 +16,9 @@ export interface IAdminRepository {
     findAllExams(): Promise<Test[]>
     findQuestionByID(id: string): Promise<Question>
     findExamByID(id: string): Promise<Test>
+    findOptionByQuestionID(id: string): Promise<Option[]>
     findQuestionsByExamID(id: string): Promise<Question[]>
+    findQuestionWithOptions(id: string): Promise<Test | null>
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
 }
@@ -74,5 +73,34 @@ export class AdminRepository implements IAdminRepository {
 
     async findAllExams(): Promise<Test[]> {
         return await this.exam.findAll()
+    }
+
+    async findOptionByQuestionID(id: string): Promise<Option[]> {
+        return await this.option.findAll({ where: { questionId: id } })
+    }
+    async findQuestionWithOptions(id: string): Promise<Test | null> {
+        const exam = await this.exam.findByPk(id, {
+            attributes: ['id', 'title', 'durationMinutes'],
+            include: [
+                {
+                    separate: true,
+                    model: this.question,
+                    as: 'questions',
+                    attributes: ['id', 'text'],
+                    order: [['id', 'ASC']],
+                    include: [
+                        {
+                            attributes: ['id', 'text', 'isCorrect'],
+                            separate: true,
+                            model: this.option,
+                            as: 'options',
+                            order: [['id', 'ASC']]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        return exam;
     }
 }
