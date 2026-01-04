@@ -1,7 +1,9 @@
-import { TestResultStatus } from "../../../config/database/models/ExamResult";
+import { Transaction } from "sequelize";
+import { TestResult, TestResultStatus } from "../../../config/database/models/ExamResult";
 import { AppError } from "../../../utils/app-error";
 import { IAdminRepository } from "../../admin/entity/admin.entity";
 import { IUserRepository } from "../entity/user.entity";
+import { Test } from "../../../config/database/models/Exam";
 
 
 export class UserService {
@@ -44,9 +46,9 @@ export class UserService {
         }
     }
 
+    // Untuk Get Jawaban yang sudah terjawab secara stateful
     async findQuestionAnswerByUserId(userId: string) {
-        const questionAnswers = await this.userRepository.findQuestionAnswerByUserId(userId)
-        return questionAnswers
+        return await this.userRepository.findQuestionAnswerByUserId(userId)
     }
 
 
@@ -117,17 +119,55 @@ export class UserService {
     }
 
 
-    // DEVELOPMENT STEP
-    async submitExam(userId: string) {
-        const user = await this.userRepository.findByUserId(userId)
-        if (!user) {
-            throw new AppError("User not found", 404)
+
+    async submitExam(userId: string, examId: string, transaction: Transaction) {
+        interface TestResultWithExam extends TestResult {
+            Test: Test;
         }
-        const examResult = await this.userRepository.findExamResultsByUserId(userId)
-        if (!examResult) {
-            throw new AppError("Exam result not found", 404)
+        const userResult = await this.userRepository.findUserResultWithExam(userId, examId, transaction) as TestResultWithExam;
+
+        if (!userResult) {
+            throw new AppError("Sesi pengerjaan tidak ditemukan.", 404);
         }
-        return true
+
+        if (userResult.status === TestResultStatus.SUBMITTED) {
+            throw new Error("Ujian sudah disubmit sebelumnya.");
+        }
+        const exam = userResult.Test;
+        const startTime = userResult.startedAt.getTime();
+        const now = new Date().getTime();
+        let totalCorrect = 0;
+
+        if (exam && exam.durationMinutes) {
+            const durationMs = exam.durationMinutes * 60 * 1000;
+            const toleranceMs = 30 * 1000; // Toleransi latency 30 detik
+
+            if (now > (startTime + durationMs + toleranceMs)) {
+                throw new Error("Waktu pengerjaan telah habis.");
+            }
+        }
+        const [userAnswers, totalQuestionsCount] = await Promise.all([
+            this.userRepository.findQuestionWithCorrectAnswerOptionsByUserId(userId, examId, transaction),
+            this.userRepository.totalQuestionByExamId(examId, transaction)
+        ])
+        const totalAnswered = userAnswers.length;
+        userAnswers.forEach((answer: any) => {
+            const correctOptionId = answer.question.options[0]?.id;
+            if (answer.optionId === correctOptionId) {
+                totalCorrect++;
+            }
+        });
+        const finalScore = totalQuestionsCount > 0 ? (totalCorrect / totalQuestionsCount) * 100 : 0;
+        await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, new Date(), transaction)
+        return {
+            score: finalScore,
+            summary: {
+                totalQuestions: totalQuestionsCount,
+                answered: userAnswers.length,
+                correct: totalCorrect,
+                incorrect: totalQuestionsCount - totalCorrect
+            }
+        };
     }
 
 }

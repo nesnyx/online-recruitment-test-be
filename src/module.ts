@@ -10,7 +10,9 @@ import { ENV } from "./config/env";
 export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
-        app.use(cors())
+        app.use(cors({
+            origin: "*"
+        }))
         app.use(express.json())
         app.use(morgan("dev"))
         app.use(urlencoded({ extended: true }))

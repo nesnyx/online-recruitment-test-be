@@ -48,10 +48,10 @@ export const ExamSchema = v.pipe(
 
 
 export const GenerateAccountSchema = v.object({
-    username: v.pipe(
+    name: v.pipe(
         v.string(),
         v.minLength(4),
-        v.maxLength(20)
+        v.maxLength(64)
     ),
 
     email: v.pipe(

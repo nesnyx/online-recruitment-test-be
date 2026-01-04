@@ -25,7 +25,7 @@ export class AuthRepository implements IAuthRepository {
     }
 
     async loginUser(payload: AuthDto): Promise<User> {
-        const user = await this.user.findOne({ where: { name: payload.username } })
+        const user = await this.user.findOne({ where: { username: payload.username } })
         if (!user) {
             throw new AppError('User not found', 404)
         }

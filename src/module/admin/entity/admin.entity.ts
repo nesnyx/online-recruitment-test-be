@@ -98,7 +98,7 @@ export class AdminRepository implements IAdminRepository {
                         }
                     ]
                 }
-            ]
+            ],
         });
 
         return exam;

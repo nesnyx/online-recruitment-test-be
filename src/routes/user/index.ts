@@ -11,10 +11,11 @@ import { Option } from "../../config/database/models/Option"
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth"
 import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
+import { sequelize } from "../../config/database/database"
 
 export const user = express.Router()
 
-const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question)
+const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
 const adminRepository = new AdminRepository(User, Test, Option, Question)
 const userService = new UserService(userRepository, adminRepository)
 
@@ -47,7 +48,7 @@ user.get("/exam/:examId/status", async (req: Request, res: Response) => {
 })
 
 
-user.get("/exam/questions/answer", async (req: Request, res: Response) => {
+user.get("/exam/questions/answers", async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id
         if (!userId) throw new AppError("Unauthorized", 401)
@@ -124,6 +125,30 @@ user.post("/exam/start", async (req: Request, res: Response) => {
         if (!userId) throw new AppError("Unauthorized", 401)
         const { examId } = req.body
         const examResult = await userService.startExam(userId, examId)
+        return res.status(201).json({
+            status: "success",
+            data: examResult
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+user.post("/exam/submit", async (req: Request, res: Response) => {
+    try {
+        const userId = req.user?.id
+        if (!userId) throw new AppError("Unauthorized", 401)
+        const { examId } = req.body
+        const examResult = await userService.submitExam(userId, examId, await sequelize.transaction())
         return res.status(201).json({
             status: "success",
             data: examResult

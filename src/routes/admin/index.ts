@@ -11,7 +11,7 @@ import { CreateExamType } from "../../module/admin/dto/create-exam.dto";
 import { CreateOptionType } from "../../module/admin/dto/create-option.dto";
 import { CreateQuestionType } from "../../module/admin/dto/create-question.dto";
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth";
-import { generateSecureRandomPassword } from "../../utils/generate-password";
+import { generateRandomUsername, generateSecurePassword } from "../../utils/generate-password";
 import { Role } from "../../module/auth/services/auth.service";
 import { validate } from "../../module/middleware/validate";
 import { GenerateAccountSchema } from "./validation";
@@ -71,8 +71,8 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
 admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, res: Response) => {
     try {
         const { name, email } = req.body
-        const password = generateSecureRandomPassword(12)
-        const username = generateSecureRandomPassword(8)
+        const password = generateSecurePassword()
+        const username = generateRandomUsername()
         const payload: CreateAccountType = {
             username,
             name,
