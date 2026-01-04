@@ -241,7 +241,6 @@ admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
 })
 
 
-
 admin.get("/exams/:examId", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
@@ -261,4 +260,62 @@ admin.get("/exams/:examId", async (req: Request, res: Response) => {
     }
 })
 
+admin.patch("/exams/:examId", async (req: Request, res: Response) => {
+    try {
+        const examId = req.params.examId
+        const { title, description, startAt, endAt, durationMinutes } = req.body
+        const exam = await adminService.findExamByID(examId)
+        const payload: CreateExamType = {
+            title,
+            description,
+            startAt,
+            endAt,
+            durationMinutes
+        }
+        const updatedExam = await adminService.updateExam(exam.id, payload)
+        res.status(200).json({
+            success: true,
+            data: updatedExam
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
 
+
+admin.patch("/questions/:id", async (req: Request, res: Response) => {
+    try {
+        const questionId = req.params.id
+        const { text } = req.body
+        const question = await adminService.findQuestionByID(questionId)
+        const payload: CreateQuestionType = {
+            testId: question.testId,
+            text
+        }
+        const updatedQuestion = await adminService.updateQuestion(question.id, payload)
+        res.status(200).json({
+            success: true,
+            data: updatedQuestion
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
