@@ -66,4 +66,26 @@ export class AdminService {
     async getQuestionWithOptions(examId: string) {
         return await this.adminRepository.findQuestionWithOptions(examId)
     }
+
+    async updateExam(examId: string, payload: CreateExamType) {
+        return await this.adminRepository.updateExamById(examId, payload)
+    }
+
+    async updateQuestion(questionId: string, payload: CreateQuestionType) {
+        return await this.adminRepository.updateQuestionById(questionId, payload)
+    }
+
+    async updateOption(optionId: string, text: string, isCorrect: boolean) {
+        return await this.adminRepository.updateOptionById(optionId, text, isCorrect)
+    }
+
+    async deleteOption(optionId: string) {
+        return await this.adminRepository.deleteOptionById(optionId)
+    }
+
+    async deleteQuestion(questionId: string) {
+        return await this.adminRepository.deleteQuestionById(questionId)
+    }
+
+
 }

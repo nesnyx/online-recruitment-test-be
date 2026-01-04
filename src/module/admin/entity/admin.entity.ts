@@ -15,8 +15,15 @@ export interface IAdminRepository {
     createExam(payload: CreateExamType): Promise<Test>
     findAllExams(): Promise<Test[]>
     findQuestionByID(id: string): Promise<Question>
+    updateQuestionById(id: string, payload: CreateQuestionType): Promise<Question>
+    deleteQuestionById(id: string): Promise<boolean>
     findExamByID(id: string): Promise<Test>
     findOptionByQuestionID(id: string): Promise<Option[]>
+
+    deleteOptionById(id: string): Promise<boolean>
+    updateOptionById(id: string, text: string, isCorrect: boolean): Promise<Option>
+    updateExamById(id: string, payload: CreateExamType): Promise<Test>
+
     findQuestionsByExamID(id: string): Promise<Question[]>
     findQuestionWithOptions(id: string): Promise<Test | null>
     createOption(payload: CreateOptionType): Promise<Option>
@@ -78,6 +85,7 @@ export class AdminRepository implements IAdminRepository {
     async findOptionByQuestionID(id: string): Promise<Option[]> {
         return await this.option.findAll({ where: { questionId: id } })
     }
+
     async findQuestionWithOptions(id: string): Promise<Test | null> {
         const exam = await this.exam.findByPk(id, {
             attributes: ['id', 'title', 'durationMinutes'],
@@ -102,5 +110,56 @@ export class AdminRepository implements IAdminRepository {
         });
 
         return exam;
+    }
+
+    async updateQuestionById(id: string, payload: CreateQuestionType): Promise<Question> {
+        const question = await this.question.findByPk(id)
+        if (!question) {
+            throw new AppError('Question not found', 404)
+        }
+        return await question.update(payload)
+    }
+
+    async deleteQuestionById(id: string): Promise<boolean> {
+        const question = await this.question.findByPk(id)
+        if (!question) {
+            throw new AppError('Question not found', 404)
+        }
+        await question.destroy()
+        return true
+    }
+
+    async updateExamById(id: string, payload: CreateExamType): Promise<Test> {
+        const exam = await this.exam.findByPk(id)
+        if (!exam) {
+            throw new AppError('Exam not found', 404)
+        }
+        return await exam.update(payload)
+    }
+
+    async deleteExamById(id: string): Promise<boolean> {
+        const exam = await this.exam.findByPk(id)
+        if (!exam) {
+            throw new AppError('Exam not found', 404)
+        }
+        await exam.destroy()
+        return true
+    }
+
+    async updateOptionById(id: string, text: string, isCorrect: boolean): Promise<Option> {
+        const option = await this.option.findByPk(id)
+        if (!option) {
+            throw new AppError('Option not found', 404)
+        }
+        return await option.update({ text, isCorrect })
+    }
+
+    async deleteOptionById(id: string): Promise<boolean> {
+        const option = await this.option.findByPk(id)
+        if (!option) {
+            throw new AppError('Option not found', 404)
+        }
+        await option.destroy()
+        return true
     }
 }

@@ -5,11 +5,12 @@ import { User } from "../../../config/database/models/User";
 import { Option } from "../../../config/database/models/Option";
 import { Sequelize, Transaction } from "sequelize";
 import { Test } from "../../../config/database/models/Exam";
+import { sequelize } from "../../../config/database/database";
 export interface IUserRepository {
     findByUserId(userId: string): Promise<User | null>
     createOrUpdateQuestionAnswer(userId: string, optionId: string, questionId: string): Promise<QuestionAnswer>
     findQuestionAnswerByUserId(userId: string): Promise<QuestionAnswer[]>
-    findExamResultsByUserId(userId: string): Promise<TestResult | null>
+    findExamResultsByUserId(userId: string, examId: string): Promise<TestResult | null>
     createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus): Promise<TestResult>
     findQuestionExam(examId: string): Promise<Question[]>
     updateExamResult(userId: string, status: TestResultStatus, score: number, correctCount: number, totalQuestions: number, submittedAt: Date, transaction: Transaction): Promise<TestResult | any>
@@ -37,14 +38,27 @@ export class UserRepository implements IUserRepository {
             where: { userId }
         })
     }
-    async findExamResultsByUserId(userId: string): Promise<TestResult | null> {
-        return await this.testResult.findOne({ where: { userId } })
+    async findExamResultsByUserId(userId: string, examId: string): Promise<TestResult | null> {
+        return await this.testResult.findOne({ where: { userId, testId: examId } })
     }
     async createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus): Promise<TestResult> {
         return await this.testResult.create({ userId, testId: examId, startedAt, score, correctCount, totalQuestions, status })
     }
     async findQuestionExam(examId: string): Promise<Question[]> {
-        return await this.question.findAll({ where: { testId: examId } })
+        return await this.question.findAll(
+            {
+                where: { testId: examId },
+                include: [
+                    {
+                        model: this.option,
+                        as: 'options',
+                        attributes: ['id', 'text'],
+                    }
+                ],
+                attributes: ['id', 'text'],
+                order: [sequelize.random()]
+            }
+        )
     }
     async updateExamResult(userId: string, status: TestResultStatus, score: number, correctCount: number, totalQuestions: number, submittedAt: Date, transaction: Transaction): Promise<TestResult | any> {
         return await this.testResult.update({ status: status, score, correctCount, totalQuestions, submittedAt }, { where: { userId }, transaction: transaction })

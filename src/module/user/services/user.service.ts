@@ -34,8 +34,6 @@ export class UserService {
             this.userRepository.findQuestionExam(examId)
         ])
         if (!existingExam) throw new AppError("Exam not found", 404)
-        if (!questions) throw new AppError("Questions not found", 404)
-
         return {
             exam: {
                 id: existingExam.id,
@@ -53,22 +51,25 @@ export class UserService {
 
 
     async checkStatusExamHappening(userId: string, examId: string) {
-        const [existingUser, existingExam] = await Promise.all([
-            this.userRepository.findByUserId(userId),
-            this.adminRepository.findExamByID(examId)
-        ])
-        if (!existingUser) throw new AppError("User not found", 404)
-        if (!existingExam) throw new AppError("Exam not found", 404)
+        const [exam, userResult] = await Promise.all([
+            this.adminRepository.findExamByID(examId),
+            this.userRepository.findExamResultsByUserId(userId, examId) // Pastikan filter userId & examId
+        ]);
 
-        const timeNow = new Date();
-        const durationMilliSeconds = (existingExam.durationMinutes ?? 0) * 60 * 1000;
-        const timeDiff = timeNow.getTime() - existingExam.startAt.getTime();
+        if (!exam) throw new AppError("Exam not found", 404);
+        if (!userResult) return { is_exam_ongoing: false, message: "Belum memulai ujian" };
+
+        const startTime = userResult.startedAt.getTime();
+        const durationMs = (exam.durationMinutes ?? 0) * 60 * 1000;
+        const timeNow = Date.now();
+        const timeElapsed = timeNow - startTime;
+        const remaining = durationMs - timeElapsed;
 
         return {
-            "user_id": existingUser.id,
-            "remaining_duration": durationMilliSeconds - timeDiff,
-            "is_exam_ongoing": timeDiff < durationMilliSeconds
-        }
+            user_id: userId,
+            remaining_duration: Math.max(0, remaining), // Jangan sampai minus
+            is_exam_ongoing: remaining > 0 && userResult.status === TestResultStatus.ONGOING
+        };
     }
 
 
@@ -87,12 +88,12 @@ export class UserService {
         if (!existingExam) throw new AppError("Exam not found", 404);
 
         // Ambil hasil ujian
-        let existingExamResult = await this.userRepository.findExamResultsByUserId(userId);
+        let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId);
 
         if (existingExamResult) {
             // OPTIMASI 2: Cek status dulu sebelum hitung matematika (lebih ringan)
             if (existingExamResult.status === TestResultStatus.SUBMITTED) {
-                throw new AppError("Exam already submitted", 200);
+                throw new AppError("Exam already submitted", 400);
             }
 
             // Hitung durasi
@@ -100,7 +101,7 @@ export class UserService {
             const timeDiff = timeNow.getTime() - existingExamResult.startedAt.getTime();
 
             if (timeDiff > durationMilliSeconds) {
-                throw new AppError("Exam time is over", 200);
+                throw new AppError("Exam time is over", 400);
             }
         } else {
             // OPTIMASI 3: Langsung kirim argumen tanpa membuat object Record tambahan
