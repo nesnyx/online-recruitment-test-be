@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import { AdminRepository } from "../../module/admin/entity/admin.entity";
 import { AdminService } from "../../module/admin/services/admin.service";
 import { Test } from "../../config/database/models/Exam";
@@ -23,17 +23,14 @@ const adminService = new AdminService(adminRepository)
 
 admin.use(authMiddleware, roleMiddleware(Role.ADMIN))
 
-admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, res: Response) => {
+
+admin.get("/accounts", async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { username, email } = req.body
-        const password = generateSecureRandomPassword()
-        const payload: CreateAccountType = {
-            name: username,
-            password,
-            email
-        }
-        const user = await adminService.createUserAccount(payload)
-        res.status(200).json(user)
+        const users = await adminService.getAllUserAccount()
+        res.status(200).json({
+            success: true,
+            data: users
+        })
     } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
@@ -57,6 +54,56 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
             "email": user.email,
         })
     } catch (error: any) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+
+admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, res: Response) => {
+    try {
+        const { name, email } = req.body
+        const password = generateSecureRandomPassword(12)
+        const username = generateSecureRandomPassword(8)
+        const payload: CreateAccountType = {
+            username,
+            name,
+            password,
+            email
+        }
+        const user = await adminService.createUserAccount(payload)
+        res.status(200).json(user)
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+
+admin.get("/exams", async (req: Request, res: Response) => {
+    try {
+        const exams = await adminService.getAllExams()
+        res.status(200).json({
+            success: true,
+            data: exams
+        })
+    } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 status: "error",
@@ -95,6 +142,7 @@ admin.post("/exams", validate(ExamSchema), async (req: Request, res: Response) =
         });
     }
 })
+
 
 admin.post("/questions/:questionId/options", async (req: Request, res: Response) => {
     const questionId = req.params.questionId

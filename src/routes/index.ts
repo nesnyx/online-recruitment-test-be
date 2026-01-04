@@ -3,7 +3,7 @@ import { auth } from "./auth"
 import { admin } from "./admin"
 import { user } from "./user"
 
-export const router = express()
+export const router = express.Router()
 
 
 router.use("/auth", auth)

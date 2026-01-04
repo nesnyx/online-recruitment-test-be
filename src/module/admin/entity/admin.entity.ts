@@ -14,8 +14,9 @@ import { CreateQuestionType } from "../dto/create-question.dto"
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
     createUserAccount(payload: CreateAccountType): Promise<User>
-
+    findAllUserAccount(): Promise<User[]>
     createExam(payload: CreateExamType): Promise<Test>
+    findAllExams(): Promise<Test[]>
     findQuestionByID(id: string): Promise<Question>
     findExamByID(id: string): Promise<Test>
     findQuestionsByExamID(id: string): Promise<Question[]>
@@ -67,4 +68,11 @@ export class AdminRepository implements IAdminRepository {
         return questions
     }
 
+    async findAllUserAccount(): Promise<User[]> {
+        return await this.user.findAll()
+    }
+
+    async findAllExams(): Promise<Test[]> {
+        return await this.exam.findAll()
+    }
 }

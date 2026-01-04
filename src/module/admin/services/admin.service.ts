@@ -58,4 +58,12 @@ export class AdminService {
     async findQuestionsByExamID(id: string): Promise<Question[]> {
         return await this.adminRepository.findQuestionsByExamID(id)
     }
+
+    async getAllUserAccount(): Promise<User[]> {
+        return await this.adminRepository.findAllUserAccount()
+    }
+
+    async getAllExams(): Promise<Test[]> {
+        return await this.adminRepository.findAllExams()
+    }
 }
