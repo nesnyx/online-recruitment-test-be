@@ -19,11 +19,9 @@ export interface IAdminRepository {
     deleteQuestionById(id: string): Promise<boolean>
     findExamByID(id: string): Promise<Test>
     findOptionByQuestionID(id: string): Promise<Option[]>
-
     deleteOptionById(id: string): Promise<boolean>
     updateOptionById(id: string, text: string, isCorrect: boolean): Promise<Option>
     updateExamById(id: string, payload: CreateExamType): Promise<Test>
-
     findQuestionsByExamID(id: string): Promise<Question[]>
     findQuestionWithOptions(id: string): Promise<Test | null>
     createOption(payload: CreateOptionType): Promise<Option>

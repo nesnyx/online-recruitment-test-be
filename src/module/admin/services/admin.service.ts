@@ -50,7 +50,6 @@ export class AdminService {
         return await this.adminRepository.createQuestion(payload)
     }
 
-
     async getAllUserAccount() {
         return await this.adminRepository.findAllUserAccount()
     }

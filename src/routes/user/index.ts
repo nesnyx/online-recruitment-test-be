@@ -12,6 +12,7 @@ import { authMiddleware, roleMiddleware } from "../../module/middleware/auth"
 import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
 import { sequelize } from "../../config/database/database"
+import { isExamActive } from "../../module/middleware/isExamActive"
 
 export const user = express.Router()
 
@@ -72,7 +73,7 @@ user.get("/exam/questions/answers", async (req: Request, res: Response) => {
 })
 
 
-user.get("/exam/:examId/questions", async (req: Request, res: Response) => {
+user.get("/exam/:examId/questions", isExamActive(userRepository, adminRepository), async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
         const questions = await userService.findQuestionExam(examId)
@@ -94,7 +95,7 @@ user.get("/exam/:examId/questions", async (req: Request, res: Response) => {
     }
 })
 
-user.post("/exam/question/answer", async (req: Request, res: Response) => {
+user.post("/exam/:examId/question/answer", isExamActive(userRepository, adminRepository), async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id
         if (!userId) throw new AppError("Unauthorized", 401)
