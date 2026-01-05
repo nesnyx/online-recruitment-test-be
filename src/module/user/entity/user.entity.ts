@@ -68,8 +68,8 @@ export class UserRepository implements IUserRepository {
             where: { userId },
             include: [{
                 model: this.question,
-                as: 'questions',
-                where: { testId: examId }, // Filter supaya hanya soal dari exam ini
+                // as: 'questions',
+                where: { testId: examId },
                 attributes: ['id'],
                 include: [{
                     model: this.option,
@@ -92,7 +92,7 @@ export class UserRepository implements IUserRepository {
             attributes: ['id', 'status', 'createdAt', 'startedAt'],
             include: [{
                 model: this.test,
-                as: 'Test', // pastikan aliasnya sesuai relasi TestResult.belongsTo(Test)
+                // as: 'test',
                 attributes: ['id', 'durationMinutes'],
             }],
             lock: transaction.LOCK.UPDATE,

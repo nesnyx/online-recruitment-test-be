@@ -121,19 +121,16 @@ export class UserService {
 
 
     async submitExam(userId: string, examId: string, transaction: Transaction) {
-        interface TestResultWithExam extends TestResult {
-            Test: Test;
-        }
-        const userResult = await this.userRepository.findUserResultWithExam(userId, examId, transaction) as TestResultWithExam;
+        const userResult = await this.userRepository.findUserResultWithExam(userId, examId, transaction);
 
         if (!userResult) {
             throw new AppError("Sesi pengerjaan tidak ditemukan.", 404);
         }
 
         if (userResult.status === TestResultStatus.SUBMITTED) {
-            throw new Error("Ujian sudah disubmit sebelumnya.");
+            throw new AppError("Ujian sudah disubmit sebelumnya.", 400);
         }
-        const exam = userResult.Test;
+        const exam = (userResult as any).Test;
         const startTime = userResult.startedAt.getTime();
         const now = new Date().getTime();
         let totalCorrect = 0;
@@ -150,9 +147,8 @@ export class UserService {
             this.userRepository.findQuestionWithCorrectAnswerOptionsByUserId(userId, examId, transaction),
             this.userRepository.totalQuestionByExamId(examId, transaction)
         ])
-        const totalAnswered = userAnswers.length;
         userAnswers.forEach((answer: any) => {
-            const correctOptionId = answer.question.options[0]?.id;
+            const correctOptionId = answer.Question.options[0]?.id;
             if (answer.optionId === correctOptionId) {
                 totalCorrect++;
             }

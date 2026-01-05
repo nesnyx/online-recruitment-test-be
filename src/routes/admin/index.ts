@@ -21,8 +21,7 @@ export const admin = express.Router()
 const adminRepository = new AdminRepository(User, Test, Option, Question)
 const adminService = new AdminService(adminRepository)
 
-admin.use(authMiddleware, roleMiddleware(Role.ADMIN))
-
+admin.use(authMiddleware)
 
 admin.get("/accounts", async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -67,7 +66,6 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
     }
 })
 
-
 admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, res: Response) => {
     try {
         const { name, email } = req.body
@@ -94,7 +92,6 @@ admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, re
         });
     }
 })
-
 
 admin.get("/exams", async (req: Request, res: Response) => {
     try {
@@ -142,7 +139,6 @@ admin.post("/exams", async (req: Request, res: Response) => {
         });
     }
 })
-
 
 admin.post("/questions/:questionId/options", async (req: Request, res: Response) => {
     const questionId = req.params.questionId
@@ -240,7 +236,6 @@ admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
     }
 })
 
-
 admin.get("/exams/:examId", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
@@ -290,7 +285,6 @@ admin.patch("/exams/:examId", async (req: Request, res: Response) => {
         });
     }
 })
-
 
 admin.patch("/questions/:id", async (req: Request, res: Response) => {
     try {

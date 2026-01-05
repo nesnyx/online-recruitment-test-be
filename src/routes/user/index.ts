@@ -48,7 +48,6 @@ user.get("/exam/:examId/status", async (req: Request, res: Response) => {
     }
 })
 
-
 user.get("/exam/questions/answers", async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id
@@ -161,6 +160,7 @@ user.post("/exam/submit", async (req: Request, res: Response) => {
                 message: error.message
             });
         }
+        console.log(error)
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"

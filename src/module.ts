@@ -11,7 +11,7 @@ export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
         app.use(cors({
-            origin: "https://asseshub.vercel.app"
+            origin: "*"
         }))
         app.use(express.json())
         app.use(morgan("dev"))
