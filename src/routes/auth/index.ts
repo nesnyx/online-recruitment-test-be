@@ -48,7 +48,9 @@ auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Respon
             password
         }
         const user = await authService.loginUser(payload)
-        res.status(200).json(user)
+        res.status(200).json({
+            token: user
+        })
     } catch (error: any) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({

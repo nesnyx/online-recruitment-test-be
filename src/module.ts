@@ -1,6 +1,7 @@
 import { Application } from "express";
 import cors from 'cors';
 import { json, urlencoded } from 'body-parser';
+import express from 'express';
 import { Sequelize } from "sequelize";
 import "./config/database/models"
 import { router } from "./routes";
@@ -9,11 +10,13 @@ import { ENV } from "./config/env";
 export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
-        app.use(cors())
+        app.use(cors({
+            origin: "*"
+        }))
+        app.use(express.json())
         app.use(morgan("dev"))
-        app.use(json())
-        app.use("/api/v1", router)
         app.use(urlencoded({ extended: true }))
+        app.use("/api/v1", router)
         Object.setPrototypeOf(this, ApplicationModule.prototype)
     }
 

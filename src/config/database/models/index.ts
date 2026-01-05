@@ -12,17 +12,17 @@ TestResult.belongsTo(User, { foreignKey: "userId" });
 User.hasMany(QuestionAnswer, { foreignKey: "userId" });
 QuestionAnswer.belongsTo(User, { foreignKey: "userId" });
 
-Test.hasMany(Question, { foreignKey: "testId" });
+Test.hasMany(Question, { foreignKey: "testId", as: "questions" });
 Question.belongsTo(Test, { foreignKey: "testId" });
 
-Test.hasMany(TestResult, { foreignKey: "testId" });
+Test.hasMany(TestResult, { foreignKey: "testId", as: "results" });
 TestResult.belongsTo(Test, { foreignKey: "testId" });
 
-Question.hasMany(QuestionAnswer, { foreignKey: "questionId" });
+Question.hasMany(QuestionAnswer, { foreignKey: "questionId", as: "answers" });
 QuestionAnswer.belongsTo(Question, { foreignKey: "questionId" });
 
-Question.hasMany(Option, { foreignKey: "questionId" });
+Question.hasMany(Option, { foreignKey: "questionId", as: "options" });
 Option.belongsTo(Question, { foreignKey: "questionId" });
 
-Option.hasMany(QuestionAnswer, { foreignKey: "optionId" });
+Option.hasMany(QuestionAnswer, { foreignKey: "optionId", as: "answers" });
 QuestionAnswer.belongsTo(Option, { foreignKey: "optionId" });
