@@ -104,7 +104,6 @@ export class UserService {
                 throw new AppError("Exam time is over", 400);
             }
         } else {
-            // OPTIMASI 3: Langsung kirim argumen tanpa membuat object Record tambahan
             existingExamResult = await this.userRepository.createExamResult(
                 userId,
                 examId,
