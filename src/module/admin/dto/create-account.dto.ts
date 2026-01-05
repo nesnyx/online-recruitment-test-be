@@ -2,7 +2,9 @@ import * as v from 'valibot';
 
 export type CreateAccountType = {
     username: string,
-    password: string
+    name: string,
+    password: string,
+    email: string
 }
 
 

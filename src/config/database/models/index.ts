@@ -1,0 +1,28 @@
+import { User } from "./User";
+import { Test } from "./Exam";
+import { Question } from "./Question";
+import { Option } from "./Option";
+import { QuestionAnswer } from "./QuestionAnswer";
+import { TestResult } from "./ExamResult";
+
+
+User.hasMany(TestResult, { foreignKey: "userId" })
+TestResult.belongsTo(User, { foreignKey: "userId" });
+
+User.hasMany(QuestionAnswer, { foreignKey: "userId" });
+QuestionAnswer.belongsTo(User, { foreignKey: "userId" });
+
+Test.hasMany(Question, { foreignKey: "testId", as: "questions" });
+Question.belongsTo(Test, { foreignKey: "testId" });
+
+Test.hasMany(TestResult, { foreignKey: "testId", as: "results" });
+TestResult.belongsTo(Test, { foreignKey: "testId" });
+
+Question.hasMany(QuestionAnswer, { foreignKey: "questionId", as: "answers" });
+QuestionAnswer.belongsTo(Question, { foreignKey: "questionId" });
+
+Question.hasMany(Option, { foreignKey: "questionId", as: "options" });
+Option.belongsTo(Question, { foreignKey: "questionId" });
+
+Option.hasMany(QuestionAnswer, { foreignKey: "optionId", as: "answers" });
+QuestionAnswer.belongsTo(Option, { foreignKey: "optionId" });
