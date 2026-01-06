@@ -11,6 +11,7 @@ import { CreateOptionType } from "../dto/create-option.dto"
 import { CreateQuestionType } from "../dto/create-question.dto"
 import { UpdateExamType } from "../dto/update-exam.dto"
 import { UpdateQuestionType } from "../dto/update-question.dto"
+import { Position } from "../../../config/database/models/Position"
 
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
@@ -32,10 +33,13 @@ export interface IAdminRepository {
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
     findUsersByIds(ids: string[]): Promise<User[]>
+    findPositions(): Promise<Position[]>
+    findPositionById(id: string): Promise<Position>
+    createPosition(name: string): Promise<Position>
 }
 
 export class AdminRepository implements IAdminRepository {
-    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question, private testResult: typeof TestResult) { }
+    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question, private testResult: typeof TestResult, private position: typeof Position) { }
     async findUserAccountByID(id: string): Promise<User> {
         const userAccount = await this.user.findByPk(id)
         if (!userAccount) {
@@ -200,5 +204,21 @@ export class AdminRepository implements IAdminRepository {
             },
             attributes: ['id', 'username', 'name', 'password', 'email']
         });
+    }
+
+    async findPositions(): Promise<Position[]> {
+        return await this.position.findAll()
+    }
+
+    async findPositionById(id: string): Promise<Position> {
+        const position = await this.position.findByPk(id)
+        if (!position) {
+            throw new AppError('Position not found', 404)
+        }
+        return position
+    }
+
+    async createPosition(name: string): Promise<Position> {
+        return await this.position.create({ name })
     }
 }

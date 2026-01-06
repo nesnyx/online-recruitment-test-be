@@ -122,5 +122,14 @@ export class AdminService {
             results: results.map(r => r.status)
         };
     }
+    async createPosition(name: string) {
+        return await this.adminRepository.createPosition(name)
+    }
+    async getAllPositions() {
+        return await this.adminRepository.findPositions()
+    }
+    async getPositionById(id: string) {
+        return await this.adminRepository.findPositionById(id)
+    }
 
 }

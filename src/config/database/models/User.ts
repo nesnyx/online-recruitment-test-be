@@ -7,6 +7,7 @@ interface UserAttributes {
     name: string;
     password: string;
     email: string;
+    positionId?: string;
 }
 
 interface UserCreationAttributes
@@ -20,6 +21,7 @@ export class User
     public name!: string;
     public email!: string;
     public password!: string;
+    public positionId!: string;
 }
 
 User.init(
@@ -45,6 +47,11 @@ User.init(
         password: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+        positionId: {
+            type: DataTypes.UUID,
+            allowNull: true,
+            defaultValue: null,
         },
     },
     {

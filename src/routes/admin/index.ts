@@ -16,12 +16,13 @@ import { Role } from "../../module/auth/services/auth.service";
 import { TestResult } from "../../config/database/models/ExamResult";
 import { UpdateExamSchema } from "./validation";
 import { UpdateQuestionType } from "../../module/admin/dto/update-question.dto";
+import { Position } from "../../config/database/models/Position";
 
 
 
 export const admin = express.Router()
 
-const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
 const adminService = new AdminService(adminRepository)
 
 admin.use(authMiddleware)
@@ -71,14 +72,16 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
 
 admin.post("/accounts", async (req: Request, res: Response) => {
     try {
-        const { name, email } = req.body
+        const { name, email, positionId } = req.body
+        await adminService.getPositionById(positionId)
         const password = generateSecurePassword()
         const username = generateRandomUsername()
         const payload: CreateAccountType = {
             username,
             name,
             password,
-            email
+            email,
+            positionId
         }
         const user = await adminService.createUserAccount(payload)
         res.status(200).json(user)

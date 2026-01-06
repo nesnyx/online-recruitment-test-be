@@ -30,5 +30,5 @@ Position.init({
     }
 }, {
     sequelize,
-    tableName: "Positions"
+    tableName: "positions"
 })

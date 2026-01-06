@@ -5,7 +5,7 @@ export type CreateAccountType = {
     name: string,
     password: string,
     email: string,
-    position?: string
+    positionId?: string
 }
 
 
