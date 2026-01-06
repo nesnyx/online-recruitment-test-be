@@ -30,6 +30,7 @@ export class AdminService {
     }
 
     async createExam(payload: CreateExamType) {
+        await this.adminRepository.findPositionById(payload.categoryId)
         return await this.adminRepository.createExam(payload)
     }
 

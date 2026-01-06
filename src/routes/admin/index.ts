@@ -120,16 +120,17 @@ admin.get("/exams", async (req: Request, res: Response) => {
     }
 })
 
+
 admin.post("/exams", async (req: Request, res: Response) => {
     try {
-        const { title, description, startAt, endAt, durationMinutes, category } = req.body
+        const { title, description, startAt, endAt, durationMinutes, categoryId } = req.body
         const payload: CreateExamType = {
             title,
             description,
             startAt,
             endAt,
             durationMinutes,
-            category
+            categoryId
         }
         const exam = await adminService.createExam(payload)
         res.status(200).json(exam)
@@ -390,6 +391,72 @@ admin.delete("/options/:id", async (req: Request, res: Response) => {
         await adminService.deleteOption(optionId)
         res.status(200).json({
             success: true,
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+
+admin.get("/positions", async (req: Request, res: Response) => {
+    try {
+        const positions = await adminService.getAllPositions()
+        res.status(200).json({
+            success: true,
+            data: positions
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.get("/positions/:id", async (req: Request, res: Response) => {
+    try {
+        const positionId = req.params.id
+        const position = await adminService.getPositionById(positionId)
+        res.status(200).json({
+            success: true,
+            data: position
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.post("/positions", async (req: Request, res: Response) => {
+    try {
+        const { name } = req.body
+        const position = await adminService.createPosition(name)
+        res.status(200).json({
+            success: true,
+            data: position
         })
     } catch (error) {
         if (error instanceof AppError) {

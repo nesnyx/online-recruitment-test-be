@@ -4,5 +4,5 @@ export type CreateExamType = {
     startAt: Date,
     endAt: Date,
     durationMinutes?: number,
-    category?: string
+    categoryId: string
 }
