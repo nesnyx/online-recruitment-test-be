@@ -36,6 +36,8 @@ export interface IAdminRepository {
     findPositions(): Promise<Position[]>
     findPositionById(id: string): Promise<Position>
     createPosition(name: string): Promise<Position>
+    deletePositionById(id: string): Promise<boolean>
+    updatePositionById(id: string, name: string): Promise<Position>
 }
 
 export class AdminRepository implements IAdminRepository {
@@ -84,7 +86,14 @@ export class AdminRepository implements IAdminRepository {
 
     async findAllUserAccount(): Promise<User[]> {
         return await this.user.findAll({
-            attributes: ['id', 'username', 'password', 'name', 'email']
+            attributes: ['id', 'username', 'password', 'name', 'email'],
+            include: [
+                {
+                    model: this.position,
+                    as: 'positions',
+                    attributes: ['name']
+                }
+            ]
         })
     }
 
@@ -220,5 +229,22 @@ export class AdminRepository implements IAdminRepository {
 
     async createPosition(name: string): Promise<Position> {
         return await this.position.create({ name })
+    }
+
+    async deletePositionById(id: string): Promise<boolean> {
+        const position = await this.position.findByPk(id)
+        if (!position) {
+            throw new AppError('Position not found', 404)
+        }
+        await position.destroy()
+        return true
+    }
+
+    async updatePositionById(id: string, name: string): Promise<Position> {
+        const position = await this.position.findByPk(id)
+        if (!position) {
+            throw new AppError('Position not found', 404)
+        }
+        return await position.update({ name })
     }
 }
