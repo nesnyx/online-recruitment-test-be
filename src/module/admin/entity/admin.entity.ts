@@ -1,3 +1,4 @@
+import { Op, Sequelize } from "sequelize"
 import { Test } from "../../../config/database/models/Exam"
 import { TestResult } from "../../../config/database/models/ExamResult"
 import { Option } from "../../../config/database/models/Option"
@@ -9,6 +10,7 @@ import { CreateExamType } from "../dto/create-exam.dto"
 import { CreateOptionType } from "../dto/create-option.dto"
 import { CreateQuestionType } from "../dto/create-question.dto"
 import { UpdateExamType } from "../dto/update-exam.dto"
+import { UpdateQuestionType } from "../dto/update-question.dto"
 
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
@@ -17,7 +19,7 @@ export interface IAdminRepository {
     createExam(payload: CreateExamType): Promise<Test>
     findAllExams(): Promise<Test[]>
     findQuestionByID(id: string): Promise<Question>
-    updateQuestionById(id: string, payload: CreateQuestionType): Promise<Question>
+    updateQuestionById(id: string, payload: UpdateQuestionType): Promise<Question>
     deleteQuestionById(id: string): Promise<boolean>
     findExamByID(id: string): Promise<Test>
     findOptionByQuestionID(id: string): Promise<Option[]>
@@ -29,6 +31,7 @@ export interface IAdminRepository {
     findResults(): Promise<TestResult[]>
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
+    findUsersByIds(ids: string[]): Promise<User[]>
 }
 
 export class AdminRepository implements IAdminRepository {
@@ -76,11 +79,31 @@ export class AdminRepository implements IAdminRepository {
     }
 
     async findAllUserAccount(): Promise<User[]> {
-        return await this.user.findAll()
+        return await this.user.findAll({
+            attributes: ['id', 'username', 'password', 'name', 'email']
+        })
     }
 
     async findAllExams(): Promise<Test[]> {
-        return await this.exam.findAll()
+        return await this.exam.findAll({
+            attributes: [
+                'id',
+                'title',
+                'durationMinutes',
+                'startAt',
+                'endAt',
+                [
+                    Sequelize.literal(`(
+                    SELECT COUNT(*)
+                    FROM Questions AS question
+                    WHERE
+                        question.testId = Test.id
+                )`),
+                    'totalQuestions'
+                ]
+            ],
+            order: [['createdAt', 'DESC']]
+        });
     }
 
     async findOptionByQuestionID(id: string): Promise<Option[]> {
@@ -113,7 +136,7 @@ export class AdminRepository implements IAdminRepository {
         return exam;
     }
 
-    async updateQuestionById(id: string, payload: CreateQuestionType): Promise<Question> {
+    async updateQuestionById(id: string, payload: UpdateQuestionType): Promise<Question> {
         const question = await this.question.findByPk(id)
         if (!question) {
             throw new AppError('Question not found', 404)
@@ -166,5 +189,16 @@ export class AdminRepository implements IAdminRepository {
 
     async findResults(): Promise<TestResult[]> {
         return await this.testResult.findAll()
+    }
+
+    async findUsersByIds(userIds: string[]): Promise<User[]> {
+        return await this.user.findAll({
+            where: {
+                id: {
+                    [Op.in]: userIds
+                }
+            },
+            attributes: ['id', 'username', 'name', 'password', 'email']
+        });
     }
 }

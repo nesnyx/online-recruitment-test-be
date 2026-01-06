@@ -8,10 +8,11 @@ interface TestAttributes {
     startAt: Date;
     endAt: Date;
     durationMinutes?: number;
+    category?: string
 }
 
 interface TestCreationAttributes
-    extends Optional<TestAttributes, "id" | "durationMinutes"> { }
+    extends Optional<TestAttributes, "id" | "durationMinutes" | "category"> { }
 
 export class Test
     extends Model<TestAttributes, TestCreationAttributes>
@@ -22,6 +23,7 @@ export class Test
     public startAt!: Date;
     public endAt!: Date;
     public durationMinutes?: number;
+    public category!: string;
 }
 
 Test.init(
@@ -54,6 +56,11 @@ Test.init(
         durationMinutes: {
             type: DataTypes.INTEGER,
             comment: "Durasi pengerjaan dalam menit (opsional)",
+        },
+
+        category: {
+            type: DataTypes.STRING,
+            allowNull: true,
         },
     },
     {

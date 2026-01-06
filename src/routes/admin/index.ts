@@ -15,6 +15,7 @@ import { generateRandomUsername, generateSecurePassword } from "../../utils/gene
 import { Role } from "../../module/auth/services/auth.service";
 import { TestResult } from "../../config/database/models/ExamResult";
 import { UpdateExamSchema } from "./validation";
+import { UpdateQuestionType } from "../../module/admin/dto/update-question.dto";
 
 
 
@@ -118,13 +119,14 @@ admin.get("/exams", async (req: Request, res: Response) => {
 
 admin.post("/exams", async (req: Request, res: Response) => {
     try {
-        const { title, description, startAt, endAt, durationMinutes } = req.body
+        const { title, description, startAt, endAt, durationMinutes, category } = req.body
         const payload: CreateExamType = {
             title,
             description,
             startAt,
             endAt,
-            durationMinutes
+            durationMinutes,
+            category
         }
         const exam = await adminService.createExam(payload)
         res.status(200).json(exam)
@@ -257,6 +259,29 @@ admin.get("/exams/:examId", async (req: Request, res: Response) => {
     }
 })
 
+
+admin.get("/exams/results", async (req: Request, res: Response) => {
+    try {
+        const results = await adminService.getResults()
+        res.status(200).json({
+            success: true,
+            data: results
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+
 admin.patch("/exams/:examId", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
@@ -290,12 +315,10 @@ admin.patch("/questions/:id", async (req: Request, res: Response) => {
     try {
         const questionId = req.params.id
         const { text } = req.body
-        const question = await adminService.findQuestionByID(questionId)
-        const payload: CreateQuestionType = {
-            testId: question.testId,
+        const payload: UpdateQuestionType = {
             text
         }
-        const updatedQuestion = await adminService.updateQuestion(question.id, payload)
+        const updatedQuestion = await adminService.updateQuestion(questionId, payload)
         res.status(200).json({
             success: true,
             data: updatedQuestion
@@ -314,12 +337,56 @@ admin.patch("/questions/:id", async (req: Request, res: Response) => {
     }
 })
 
-admin.get("/exams/results", async (req: Request, res: Response) => {
+admin.patch("/options/:id", async (req: Request, res: Response) => {
     try {
-        const results = await adminService.getResults()
+        const optionId = req.params.id
+        const { text, isCorrect } = req.body
+        const updatedOption = await adminService.updateOption(optionId, text, isCorrect)
         res.status(200).json({
             success: true,
-            data: results
+            data: updatedOption
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.delete("/questions/:id", async (req: Request, res: Response) => {
+    try {
+        const questionId = req.params.id
+        await adminService.deleteQuestion(questionId)
+        res.status(200).json({
+            success: true,
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.delete("/options/:id", async (req: Request, res: Response) => {
+    try {
+        const optionId = req.params.id
+        await adminService.deleteOption(optionId)
+        res.status(200).json({
+            success: true,
         })
     } catch (error) {
         if (error instanceof AppError) {
