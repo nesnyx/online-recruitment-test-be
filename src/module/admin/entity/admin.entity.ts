@@ -91,7 +91,7 @@ export class AdminRepository implements IAdminRepository {
                 {
                     model: this.position,
                     as: 'positions',
-                    attributes: ['id', 'name']
+                    attributes: ['name']
                 }
             ]
         })

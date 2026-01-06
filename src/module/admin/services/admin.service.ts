@@ -43,8 +43,19 @@ export class AdminService {
     }
 
     async getAllUserAccount() {
-        return await this.adminRepository.findAllUserAccount()
+        const accounts = await this.adminRepository.findAllUserAccount()
+        return accounts.map((account: any) => ({
+            id: account.id,
+            username: account.username,
+            password: account.password,
+            name: account.name,
+            email: account.email,
+            position: account.positions?.name || 'No Position'
+        }))
     }
+
+
+
 
     async getAllExams() {
         return await this.adminRepository.findAllExams()
