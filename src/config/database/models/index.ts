@@ -29,4 +29,7 @@ Option.hasMany(QuestionAnswer, { foreignKey: "optionId", as: "answers" });
 QuestionAnswer.belongsTo(Option, { foreignKey: "optionId" });
 
 Position.hasMany(User, { foreignKey: "positionId" });
-User.belongsTo(Position, { foreignKey: "positionId" });
+User.belongsTo(Position, { foreignKey: "positionId", as: "positions" });
+
+Position.hasMany(Test, { foreignKey: "category" });
+Test.belongsTo(Position, { foreignKey: "category" });

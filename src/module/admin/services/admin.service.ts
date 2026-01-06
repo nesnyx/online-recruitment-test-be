@@ -133,4 +133,12 @@ export class AdminService {
         return await this.adminRepository.findPositionById(id)
     }
 
+    async deletePositionById(id: string) {
+        return await this.adminRepository.deletePositionById(id)
+    }
+
+    async updatePositionById(id: string, name: string) {
+        return await this.adminRepository.updatePositionById(id, name)
+    }
+
 }

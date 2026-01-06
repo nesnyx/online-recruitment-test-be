@@ -120,7 +120,6 @@ admin.get("/exams", async (req: Request, res: Response) => {
     }
 })
 
-
 admin.post("/exams", async (req: Request, res: Response) => {
     try {
         const { title, description, startAt, endAt, durationMinutes, categoryId } = req.body
@@ -457,6 +456,50 @@ admin.post("/positions", async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             data: position
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.delete("/positions/:id", async (req: Request, res: Response) => {
+    try {
+        const positionId = req.params.id
+        await adminService.deletePositionById(positionId)
+        res.status(200).json({
+            success: true,
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.patch("/positions/:id", async (req: Request, res: Response) => {
+    try {
+        const positionId = req.params.id
+        const { name } = req.body
+        const updatedPosition = await adminService.updatePositionById(positionId, name)
+        res.status(200).json({
+            success: true,
+            data: updatedPosition
         })
     } catch (error) {
         if (error instanceof AppError) {
