@@ -3,5 +3,6 @@ export type CreateExamType = {
     description?: string,
     startAt: Date,
     endAt: Date,
-    durationMinutes?: number
+    durationMinutes?: number,
+    categoryId: string
 }

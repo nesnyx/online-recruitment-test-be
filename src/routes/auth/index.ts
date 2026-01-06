@@ -3,11 +3,11 @@ import { AuthRepository } from "../../module/auth/entity/auth.entity";
 import { Admin } from "../../config/database/models/Admin";
 import { User } from "../../config/database/models/User";
 import { AuthService } from "../../module/auth/services/auth.service";
-import { validate } from "../../module/middleware/validate";
+
 import { AuthDto } from "../../module/auth/dto/auth.dto";
 import { authMiddleware } from "../../module/middleware/auth";
 import { AppError } from "../../utils/app-error";
-import { LoginSchema, RegisterSchema } from "./validation";
+
 
 
 export const auth = express.Router()
@@ -15,7 +15,7 @@ const authRepository = new AuthRepository(Admin, User)
 const authService = new AuthService(authRepository)
 
 
-auth.post("/login/admin", validate(LoginSchema), async (req: Request, res: Response) => {
+auth.post("/login/admin", async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {
@@ -40,7 +40,7 @@ auth.post("/login/admin", validate(LoginSchema), async (req: Request, res: Respo
     }
 })
 
-auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Response) => {
+auth.post("/login/user", async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {
@@ -65,7 +65,7 @@ auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Respon
     }
 })
 
-auth.post("/register/admin", validate(RegisterSchema), async (req: Request, res: Response) => {
+auth.post("/register/admin", async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {

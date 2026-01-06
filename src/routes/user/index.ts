@@ -13,11 +13,12 @@ import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
 import { sequelize } from "../../config/database/database"
 import { isExamActive } from "../../module/middleware/isExamActive"
+import { Position } from "../../config/database/models/Position"
 
 export const user = express.Router()
 
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
-const adminRepository = new AdminRepository(User, Test, Option, Question)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
 const userService = new UserService(userRepository, adminRepository)
 
 
