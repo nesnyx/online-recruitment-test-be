@@ -13,12 +13,14 @@ import { CreateQuestionType } from "../../module/admin/dto/create-question.dto";
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth";
 import { generateRandomUsername, generateSecurePassword } from "../../utils/generate-password";
 import { Role } from "../../module/auth/services/auth.service";
-import { validate } from "../../module/middleware/validate";
-import { GenerateAccountSchema } from "./validation";
+import { TestResult } from "../../config/database/models/ExamResult";
+import { UpdateExamSchema } from "./validation";
+
+
 
 export const admin = express.Router()
 
-const adminRepository = new AdminRepository(User, Test, Option, Question)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult)
 const adminService = new AdminService(adminRepository)
 
 admin.use(authMiddleware)
@@ -66,7 +68,7 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
     }
 })
 
-admin.post("/accounts", validate(GenerateAccountSchema), async (req: Request, res: Response) => {
+admin.post("/accounts", async (req: Request, res: Response) => {
     try {
         const { name, email } = req.body
         const password = generateSecurePassword()
@@ -258,20 +260,18 @@ admin.get("/exams/:examId", async (req: Request, res: Response) => {
 admin.patch("/exams/:examId", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
-        const { title, description, startAt, endAt, durationMinutes } = req.body
-        const exam = await adminService.findExamByID(examId)
-        const payload: CreateExamType = {
-            title,
-            description,
-            startAt,
-            endAt,
-            durationMinutes
+        const validatedPayload = UpdateExamSchema.parse(req.body);
+        if (Object.keys(validatedPayload).length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "Harus ada minimal satu field yang diupdate"
+            });
         }
-        const updatedExam = await adminService.updateExam(exam.id, payload)
+        const updatedExam = await adminService.updateExam(examId, validatedPayload);
         res.status(200).json({
             success: true,
             data: updatedExam
-        })
+        });
     } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
@@ -299,6 +299,27 @@ admin.patch("/questions/:id", async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             data: updatedQuestion
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.get("/exams/results", async (req: Request, res: Response) => {
+    try {
+        const results = await adminService.getResults()
+        res.status(200).json({
+            success: true,
+            data: results
         })
     } catch (error) {
         if (error instanceof AppError) {

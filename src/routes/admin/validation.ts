@@ -1,61 +1,45 @@
-import * as v from "valibot";
+import { z } from 'zod';
 
-export const ExamSchema = v.pipe(
-    v.object({
-        title: v.pipe(
-            v.string(),
-            v.minLength(4),
-            v.maxLength(50)
-        ),
+// 1. Definisikan Base Object (Hanya field dan tipe datanya)
+const ExamBaseSchema = z.object({
+    title: z.string()
+        .min(5, "Title minimal 5 karakter")
+        .max(100, "Title maksimal 100 karakter"),
+    description: z.string()
+        .max(500, "Deskripsi maksimal 500 karakter")
+        .optional(),
+    startAt: z.string().datetime({ message: "Format tanggal startAt tidak valid" }),
+    endAt: z.string().datetime({ message: "Format tanggal endAt tidak valid" }),
+    durationMinutes: z.number()
+        .int()
+        .positive("Durasi harus angka positif")
+        .min(1, "Minimal durasi adalah 1 menit")
+});
 
-        description: v.pipe(
-            v.string(),
-            v.minLength(4),
-            v.maxLength(100)
-        ),
-
-        durationMinutes: v.pipe(
-            v.number(),
-            v.integer(),
-            v.minValue(1) // pengganti positive()
-        ),
-
-        // startAt: v.pipe(
-        //     v.date(),
-        //     v.custom(
-        //         (date: any) => date.getTime() > Date.now(),
-        //         () => "startAt must be in the future"
-        //     )
-        // ),
-
-        // endAt: v.pipe(
-        //     v.date(),
-        //     v.custom(
-        //         (date: any) => date.getTime() > Date.now(),
-        //         () => "endAt must be in the future"
-        //     )
-        // ),
-    }),
-
-    // validasi antar field
-    // v.custom(
-    //     (data: any) => data.endAt.getTime() > data.startAt.getTime(),
-    //     () => "endAt must be later than startAt"
-    // )
+// 2. Schema untuk CREATE (Wajib semua & ada Refine)
+export const CreateExamSchema = ExamBaseSchema.refine(
+    (data) => new Date(data.endAt) > new Date(data.startAt),
+    {
+        message: "Waktu selesai (endAt) harus lebih besar dari waktu mulai (startAt)",
+        path: ["endAt"],
+    }
 );
 
+// 3. Schema untuk UPDATE (Partial & ada Refine jika field dikirim)
+export const UpdateExamSchema = ExamBaseSchema.partial().refine(
+    (data) => {
+        // Hanya jalankan pengecekan jika KEDUA field dikirim dalam request PATCH
+        if (data.startAt && data.endAt) {
+            return new Date(data.endAt) > new Date(data.startAt);
+        }
+        return true; // Jika hanya salah satu atau tidak ada, lewati validasi ini
+    },
+    {
+        message: "Waktu selesai (endAt) harus lebih besar dari waktu mulai (startAt)",
+        path: ["endAt"],
+    }
+);
 
-
-
-export const GenerateAccountSchema = v.object({
-    name: v.pipe(
-        v.string(),
-        v.minLength(4),
-        v.maxLength(64)
-    ),
-
-    email: v.pipe(
-        v.string(),
-        v.email()
-    ),
-});
+// Type Inference
+export type CreateExamInput = z.infer<typeof CreateExamSchema>;
+export type UpdateExamInput = z.infer<typeof UpdateExamSchema>;

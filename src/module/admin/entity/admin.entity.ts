@@ -1,4 +1,5 @@
 import { Test } from "../../../config/database/models/Exam"
+import { TestResult } from "../../../config/database/models/ExamResult"
 import { Option } from "../../../config/database/models/Option"
 import { Question } from "../../../config/database/models/Question"
 import { User } from "../../../config/database/models/User"
@@ -7,6 +8,7 @@ import { CreateAccountType } from "../dto/create-account.dto"
 import { CreateExamType } from "../dto/create-exam.dto"
 import { CreateOptionType } from "../dto/create-option.dto"
 import { CreateQuestionType } from "../dto/create-question.dto"
+import { UpdateExamType } from "../dto/update-exam.dto"
 
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
@@ -21,15 +23,16 @@ export interface IAdminRepository {
     findOptionByQuestionID(id: string): Promise<Option[]>
     deleteOptionById(id: string): Promise<boolean>
     updateOptionById(id: string, text: string, isCorrect: boolean): Promise<Option>
-    updateExamById(id: string, payload: CreateExamType): Promise<Test>
+    updateExamById(id: string, payload: UpdateExamType): Promise<Test>
     findQuestionsByExamID(id: string): Promise<Question[]>
     findQuestionWithOptions(id: string): Promise<Test | null>
+    findResults(): Promise<TestResult[]>
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
 }
 
 export class AdminRepository implements IAdminRepository {
-    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question) { }
+    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question, private testResult: typeof TestResult) { }
     async findUserAccountByID(id: string): Promise<User> {
         const userAccount = await this.user.findByPk(id)
         if (!userAccount) {
@@ -127,7 +130,7 @@ export class AdminRepository implements IAdminRepository {
         return true
     }
 
-    async updateExamById(id: string, payload: CreateExamType): Promise<Test> {
+    async updateExamById(id: string, payload: UpdateExamType): Promise<Test> {
         const exam = await this.exam.findByPk(id)
         if (!exam) {
             throw new AppError('Exam not found', 404)
@@ -159,5 +162,9 @@ export class AdminRepository implements IAdminRepository {
         }
         await option.destroy()
         return true
+    }
+
+    async findResults(): Promise<TestResult[]> {
+        return await this.testResult.findAll()
     }
 }

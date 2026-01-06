@@ -3,6 +3,7 @@ import { CreateAccountType } from "../dto/create-account.dto";
 import { CreateExamType } from "../dto/create-exam.dto";
 import { CreateOptionType } from "../dto/create-option.dto";
 import { CreateQuestionType } from "../dto/create-question.dto";
+import { UpdateExamType } from "../dto/update-exam.dto";
 import { IAdminRepository } from "../entity/admin.entity";
 
 
@@ -66,7 +67,7 @@ export class AdminService {
         return await this.adminRepository.findQuestionWithOptions(examId)
     }
 
-    async updateExam(examId: string, payload: CreateExamType) {
+    async updateExam(examId: string, payload: UpdateExamType) {
         return await this.adminRepository.updateExamById(examId, payload)
     }
 
@@ -86,5 +87,8 @@ export class AdminService {
         return await this.adminRepository.deleteQuestionById(questionId)
     }
 
+    async getResults() {
+        return await this.adminRepository.findResults()
+    }
 
 }
