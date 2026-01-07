@@ -20,8 +20,7 @@ export const user = express.Router()
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
 const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
 const userService = new UserService(userRepository, adminRepository)
-
-
+const transaction = sequelize.transaction()
 
 user.use(authMiddleware, roleMiddleware(Role.USER))
 user.get("/exam/:examId/status", async (req: Request, res: Response) => {
@@ -125,7 +124,7 @@ user.post("/exam/start", async (req: Request, res: Response) => {
         const userId = req.user?.id
         if (!userId) throw new AppError("Unauthorized", 401)
         const { examId } = req.body
-        const examResult = await userService.startExam(userId, examId)
+        const examResult = await userService.startExam(userId, examId, await transaction)
         return res.status(201).json({
             status: "success",
             data: examResult
@@ -137,6 +136,7 @@ user.post("/exam/start", async (req: Request, res: Response) => {
                 message: error.message
             });
         }
+        console.log(error)
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -149,7 +149,7 @@ user.post("/exam/submit", async (req: Request, res: Response) => {
         const userId = req.user?.id
         if (!userId) throw new AppError("Unauthorized", 401)
         const { examId } = req.body
-        const examResult = await userService.submitExam(userId, examId, await sequelize.transaction())
+        const examResult = await userService.submitExam(userId, examId, await transaction)
         return res.status(201).json({
             status: "success",
             data: examResult

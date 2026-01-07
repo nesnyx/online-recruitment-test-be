@@ -517,7 +517,7 @@ admin.patch("/positions/:id", async (req: Request, res: Response) => {
 })
 
 
-admin.post("/accounts/invitation", async (req: Request, res: Response) => {
+admin.post("/accounts/invitation", roleMiddleware(Role.ADMIN), async (req: Request, res: Response) => {
     try {
         const { examId, userIds } = req.body
         if (!Array.isArray(userIds) || userIds.length === 0) {
