@@ -13,7 +13,8 @@ const ExamBaseSchema = z.object({
     durationMinutes: z.number()
         .int()
         .positive("Durasi harus angka positif")
-        .min(1, "Minimal durasi adalah 1 menit")
+        .min(1, "Minimal durasi adalah 1 menit"),
+    categoryId: z.string().optional(),
 });
 
 

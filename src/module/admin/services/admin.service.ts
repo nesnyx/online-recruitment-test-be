@@ -58,7 +58,17 @@ export class AdminService {
 
 
     async getAllExams() {
-        return await this.adminRepository.findAllExams()
+        const exams = await this.adminRepository.findAllExams()
+        return exams.map((exam: any) => ({
+            id: exam.id,
+            title: exam.title,
+            durationMinutes: exam.durationMinutes,
+            positionId: exam.positionId,
+            category: exam.Position?.name ?? null,
+            startAt: exam.startAt,
+            endAt: exam.endAt,
+            totalQuestions: exam.totalQuestions
+        }))
     }
 
     async getOptionsByQuestionID(id: string) {

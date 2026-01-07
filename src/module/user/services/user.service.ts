@@ -149,7 +149,7 @@ export class UserService {
 
         if (exam && exam.durationMinutes) {
             const durationMs = exam.durationMinutes * 60 * 1000;
-            const toleranceMs = 30 * 1000; // Toleransi latency 30 detik
+            const toleranceMs = 30 * 1000;
 
             if (now > (startTime + durationMs + toleranceMs)) {
                 throw new Error("Waktu pengerjaan telah habis.");

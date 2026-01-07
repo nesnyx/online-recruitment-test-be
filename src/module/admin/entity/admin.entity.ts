@@ -53,7 +53,13 @@ export class AdminRepository implements IAdminRepository {
         return await this.user.create(payload)
     }
     async createExam(payload: CreateExamType): Promise<Test> {
-        return await this.exam.create(payload)
+        return await this.exam.create({
+            title: payload.title,
+            durationMinutes: payload.durationMinutes,
+            startAt: payload.startAt,
+            endAt: payload.endAt,
+            category: payload.categoryId
+        })
     }
     async createOption(payload: CreateOptionType): Promise<Option> {
         return await this.option.create(payload)
@@ -115,7 +121,14 @@ export class AdminRepository implements IAdminRepository {
                     'totalQuestions'
                 ]
             ],
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: this.position,
+
+                    attributes: ['name']
+                }
+            ]
         });
     }
 
@@ -171,7 +184,14 @@ export class AdminRepository implements IAdminRepository {
         if (!exam) {
             throw new AppError('Exam not found', 404)
         }
-        return await exam.update(payload)
+        return await exam.update({
+            title: payload.title,
+            durationMinutes: payload.durationMinutes,
+            description: payload.description,
+            category: payload.category,
+            startAt: payload.startAt,
+            endAt: payload.endAt,
+        })
     }
 
     async deleteExamById(id: string): Promise<boolean> {

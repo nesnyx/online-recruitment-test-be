@@ -4,4 +4,5 @@ export type UpdateExamType = {
     startAt?: Date
     endAt?: Date
     durationMinutes?: number;
+    category?: string;
 }
