@@ -515,3 +515,32 @@ admin.patch("/positions/:id", async (req: Request, res: Response) => {
         });
     }
 })
+
+
+admin.post("/accounts/invitation", async (req: Request, res: Response) => {
+    try {
+        const { examId, userIds } = req.body
+        if (!Array.isArray(userIds) || userIds.length === 0) {
+            return res.status(400).json({
+                status: "error",
+                message: "userIds harus berupa array dan tidak boleh kosong"
+            });
+        }
+        const invitation = await adminService.sendInvitation(examId, userIds)
+        res.status(200).json({
+            success: true,
+            data: invitation
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})

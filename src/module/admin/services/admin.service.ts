@@ -102,6 +102,7 @@ export class AdminService {
         }
     };
     async sendInvitation(examId: string, userIds: string[]) {
+
         const [exam, users] = await Promise.all([
             this.adminRepository.findExamByID(examId),
             this.adminRepository.findUsersByIds(userIds)
@@ -109,7 +110,7 @@ export class AdminService {
 
         if (!exam) throw new AppError("Ujian tidak ditemukan", 404);
         if (users.length === 0) throw new AppError("Daftar user kosong", 400);
-
+        const missingCount = userIds.length - users.length;
         const limit = pLimit(5);
 
         const emailPromises = users.map(user => {
@@ -128,9 +129,11 @@ export class AdminService {
         const failedCount = results.length - successCount;
 
         return {
-            total: users.length,
+            totalRequested: userIds.length,
+            totalFound: users.length,
             successCount,
             failedCount,
+            missingInDb: missingCount, // Memberi tahu admin jika ada ID yang typo/salah
             results: results.map(r => r.status)
         };
     }
