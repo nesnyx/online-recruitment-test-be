@@ -10,8 +10,8 @@ export interface IUserRepository {
     findByUserId(userId: string): Promise<User | null>
     createOrUpdateQuestionAnswer(userId: string, optionId: string, questionId: string): Promise<QuestionAnswer>
     findQuestionAnswerByUserId(userId: string): Promise<QuestionAnswer[]>
-    findExamResultsByUserId(userId: string, examId: string): Promise<TestResult | null>
-    createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus): Promise<TestResult>
+    findExamResultsByUserId(userId: string, examId: string, transaction: Transaction): Promise<TestResult | null>
+    createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus, transaction: Transaction): Promise<TestResult>
     findQuestionExam(examId: string): Promise<Question[]>
     updateExamResult(userId: string, status: TestResultStatus, score: number, correctCount: number, totalQuestions: number, submittedAt: Date, transaction: Transaction): Promise<TestResult | any>
     findQuestionWithCorrectAnswerOptionsByUserId(userId: string, examId: string, transaction: Transaction): Promise<QuestionAnswer[]>
@@ -38,11 +38,11 @@ export class UserRepository implements IUserRepository {
             where: { userId }
         })
     }
-    async findExamResultsByUserId(userId: string, examId: string): Promise<TestResult | null> {
-        return await this.testResult.findOne({ where: { userId, testId: examId } })
+    async findExamResultsByUserId(userId: string, examId: string, transaction: Transaction): Promise<TestResult | null> {
+        return await this.testResult.findOne({ where: { userId, testId: examId }, transaction })
     }
-    async createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus): Promise<TestResult> {
-        return await this.testResult.create({ userId, testId: examId, startedAt, score, correctCount, totalQuestions, status })
+    async createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus, transaction: Transaction): Promise<TestResult> {
+        return await this.testResult.create({ userId, testId: examId, startedAt, score, correctCount, totalQuestions, status }, { transaction })
     }
     async findQuestionExam(examId: string): Promise<Question[]> {
         return await this.question.findAll(
