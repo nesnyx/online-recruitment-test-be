@@ -1,5 +1,6 @@
 import { AppError } from "../../../utils/app-error";
 import { sendExamInvitation } from "../../../utils/email-gateway";
+import { generateSecurePassword, generateRandomUsername } from "../../../utils/generate-password";
 import { CreateAccountType } from "../dto/create-account.dto";
 import { CreateExamType } from "../dto/create-exam.dto";
 import { CreateOptionType } from "../dto/create-option.dto";
@@ -25,7 +26,16 @@ export class AdminService {
         return await this.adminRepository.findQuestionByID(id)
     }
 
-    async createUserAccount(payload: CreateAccountType) {
+    async createUserAccount(name: string, email: string, positionId?: string) {
+        const password = generateSecurePassword()
+        const username = generateRandomUsername()
+        const payload: CreateAccountType = {
+            name,
+            email,
+            positionId,
+            username,
+            password
+        }
         return await this.adminRepository.createUserAccount(payload)
     }
 

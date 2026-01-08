@@ -55,6 +55,7 @@ export class AdminRepository implements IAdminRepository {
     async createExam(payload: CreateExamType): Promise<Test> {
         return await this.exam.create({
             title: payload.title,
+            description: payload.description,
             durationMinutes: payload.durationMinutes,
             startAt: payload.startAt,
             endAt: payload.endAt,

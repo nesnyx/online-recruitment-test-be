@@ -11,7 +11,6 @@ import { CreateExamType } from "../../module/admin/dto/create-exam.dto";
 import { CreateOptionType } from "../../module/admin/dto/create-option.dto";
 import { CreateQuestionType } from "../../module/admin/dto/create-question.dto";
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth";
-import { generateRandomUsername, generateSecurePassword } from "../../utils/generate-password";
 import { Role } from "../../module/auth/services/auth.service";
 import { TestResult } from "../../config/database/models/ExamResult";
 import { UpdateQuestionType } from "../../module/admin/dto/update-question.dto";
@@ -75,17 +74,12 @@ admin.post("/accounts", async (req: Request, res: Response) => {
     try {
         const { name, email, positionId } = req.body
         await adminService.getPositionById(positionId)
-        const password = generateSecurePassword()
-        const username = generateRandomUsername()
-        const payload: CreateAccountType = {
-            username,
-            name,
-            password,
-            email,
-            positionId
-        }
-        const user = await adminService.createUserAccount(payload)
-        res.status(200).json(user)
+        const user = await adminService.createUserAccount(name, email, positionId)
+        res.status(200).json({
+            success: true,
+            data: user,
+            message: "User created successfully"
+        })
     } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
