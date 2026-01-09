@@ -1,4 +1,6 @@
+import { Op, Sequelize } from "sequelize"
 import { Test } from "../../../config/database/models/Exam"
+import { TestResult } from "../../../config/database/models/ExamResult"
 import { Option } from "../../../config/database/models/Option"
 import { Question } from "../../../config/database/models/Question"
 import { User } from "../../../config/database/models/User"
@@ -7,6 +9,10 @@ import { CreateAccountType } from "../dto/create-account.dto"
 import { CreateExamType } from "../dto/create-exam.dto"
 import { CreateOptionType } from "../dto/create-option.dto"
 import { CreateQuestionType } from "../dto/create-question.dto"
+import { UpdateExamType } from "../dto/update-exam.dto"
+import { UpdateQuestionType } from "../dto/update-question.dto"
+import { Position } from "../../../config/database/models/Position"
+import { UpdateAccountType } from "../dto/update-account.dto"
 
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
@@ -15,21 +21,29 @@ export interface IAdminRepository {
     createExam(payload: CreateExamType): Promise<Test>
     findAllExams(): Promise<Test[]>
     findQuestionByID(id: string): Promise<Question>
-    updateQuestionById(id: string, payload: CreateQuestionType): Promise<Question>
+    updateQuestionById(id: string, payload: UpdateQuestionType): Promise<Question>
+    updateAccounts(id: string, payload: UpdateAccountType): Promise<User>
     deleteQuestionById(id: string): Promise<boolean>
     findExamByID(id: string): Promise<Test>
     findOptionByQuestionID(id: string): Promise<Option[]>
     deleteOptionById(id: string): Promise<boolean>
     updateOptionById(id: string, text: string, isCorrect: boolean): Promise<Option>
-    updateExamById(id: string, payload: CreateExamType): Promise<Test>
+    updateExamById(id: string, payload: UpdateExamType): Promise<Test>
     findQuestionsByExamID(id: string): Promise<Question[]>
     findQuestionWithOptions(id: string): Promise<Test | null>
+    findResults(): Promise<TestResult[]>
     createOption(payload: CreateOptionType): Promise<Option>
     createQuestion(payload: CreateQuestionType): Promise<Question>
+    findUsersByIds(ids: string[]): Promise<User[]>
+    findPositions(): Promise<Position[]>
+    findPositionById(id: string): Promise<Position>
+    createPosition(name: string): Promise<Position>
+    deletePositionById(id: string): Promise<boolean>
+    updatePositionById(id: string, name: string): Promise<Position>
 }
 
 export class AdminRepository implements IAdminRepository {
-    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question) { }
+    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question, private testResult: typeof TestResult, private position: typeof Position) { }
     async findUserAccountByID(id: string): Promise<User> {
         const userAccount = await this.user.findByPk(id)
         if (!userAccount) {
@@ -41,7 +55,14 @@ export class AdminRepository implements IAdminRepository {
         return await this.user.create(payload)
     }
     async createExam(payload: CreateExamType): Promise<Test> {
-        return await this.exam.create(payload)
+        return await this.exam.create({
+            title: payload.title,
+            description: payload.description,
+            durationMinutes: payload.durationMinutes,
+            startAt: payload.startAt,
+            endAt: payload.endAt,
+            category: payload.categoryId
+        })
     }
     async createOption(payload: CreateOptionType): Promise<Option> {
         return await this.option.create(payload)
@@ -73,11 +94,45 @@ export class AdminRepository implements IAdminRepository {
     }
 
     async findAllUserAccount(): Promise<User[]> {
-        return await this.user.findAll()
+        return await this.user.findAll({
+            attributes: ['id', 'username', 'password', 'name', 'email'],
+            include: [
+                {
+                    model: this.position,
+                    as: 'positions',
+                    attributes: ['name']
+                }
+            ]
+        })
     }
 
     async findAllExams(): Promise<Test[]> {
-        return await this.exam.findAll()
+        return await this.exam.findAll({
+            attributes: [
+                'id',
+                'title',
+                'durationMinutes',
+                'startAt',
+                'endAt',
+                [
+                    Sequelize.literal(`(
+                    SELECT COUNT(*)
+                    FROM Questions AS question
+                    WHERE
+                        question.testId = Test.id
+                )`),
+                    'totalQuestions'
+                ]
+            ],
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: this.position,
+
+                    attributes: ['name']
+                }
+            ]
+        });
     }
 
     async findOptionByQuestionID(id: string): Promise<Option[]> {
@@ -110,7 +165,7 @@ export class AdminRepository implements IAdminRepository {
         return exam;
     }
 
-    async updateQuestionById(id: string, payload: CreateQuestionType): Promise<Question> {
+    async updateQuestionById(id: string, payload: UpdateQuestionType): Promise<Question> {
         const question = await this.question.findByPk(id)
         if (!question) {
             throw new AppError('Question not found', 404)
@@ -118,6 +173,14 @@ export class AdminRepository implements IAdminRepository {
         return await question.update(payload)
     }
 
+
+    async updateAccounts(id: string, payload: UpdateAccountType): Promise<User> {
+        const user = await this.user.findByPk(id)
+        if (!user) {
+            throw new AppError('User not found', 404)
+        }
+        return await user.update(payload)
+    }
     async deleteQuestionById(id: string): Promise<boolean> {
         const question = await this.question.findByPk(id)
         if (!question) {
@@ -127,12 +190,19 @@ export class AdminRepository implements IAdminRepository {
         return true
     }
 
-    async updateExamById(id: string, payload: CreateExamType): Promise<Test> {
+    async updateExamById(id: string, payload: UpdateExamType): Promise<Test> {
         const exam = await this.exam.findByPk(id)
         if (!exam) {
             throw new AppError('Exam not found', 404)
         }
-        return await exam.update(payload)
+        return await exam.update({
+            title: payload.title,
+            durationMinutes: payload.durationMinutes,
+            description: payload.description,
+            category: payload.category,
+            startAt: payload.startAt,
+            endAt: payload.endAt,
+        })
     }
 
     async deleteExamById(id: string): Promise<boolean> {
@@ -159,5 +229,53 @@ export class AdminRepository implements IAdminRepository {
         }
         await option.destroy()
         return true
+    }
+
+    async findResults(): Promise<TestResult[]> {
+        return await this.testResult.findAll()
+    }
+
+    async findUsersByIds(userIds: string[]): Promise<User[]> {
+        return await this.user.findAll({
+            where: {
+                id: {
+                    [Op.in]: userIds
+                }
+            },
+            attributes: ['id', 'username', 'name', 'password', 'email']
+        });
+    }
+
+    async findPositions(): Promise<Position[]> {
+        return await this.position.findAll()
+    }
+
+    async findPositionById(id: string): Promise<Position> {
+        const position = await this.position.findByPk(id)
+        if (!position) {
+            throw new AppError('Position not found', 404)
+        }
+        return position
+    }
+
+    async createPosition(name: string): Promise<Position> {
+        return await this.position.create({ name })
+    }
+
+    async deletePositionById(id: string): Promise<boolean> {
+        const position = await this.position.findByPk(id)
+        if (!position) {
+            throw new AppError('Position not found', 404)
+        }
+        await position.destroy()
+        return true
+    }
+
+    async updatePositionById(id: string, name: string): Promise<Position> {
+        const position = await this.position.findByPk(id)
+        if (!position) {
+            throw new AppError('Position not found', 404)
+        }
+        return await position.update({ name })
     }
 }

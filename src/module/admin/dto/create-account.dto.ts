@@ -1,15 +1,11 @@
-import * as v from 'valibot';
+
 
 export type CreateAccountType = {
     username: string,
     name: string,
     password: string,
-    email: string
+    email: string,
+    positionId?: string
 }
 
 
-export const CreateAccount = v.object({
-    username: v.string(),
-    password: v.string(),
-
-})

@@ -3,19 +3,26 @@ import { AuthRepository } from "../../module/auth/entity/auth.entity";
 import { Admin } from "../../config/database/models/Admin";
 import { User } from "../../config/database/models/User";
 import { AuthService } from "../../module/auth/services/auth.service";
-import { validate } from "../../module/middleware/validate";
+
 import { AuthDto } from "../../module/auth/dto/auth.dto";
 import { authMiddleware } from "../../module/middleware/auth";
 import { AppError } from "../../utils/app-error";
-import { LoginSchema, RegisterSchema } from "./validation";
+import { Test } from "../../config/database/models/Exam";
+import { Option } from "../../config/database/models/Option";
+import { Question } from "../../config/database/models/Question";
+import { TestResult } from "../../config/database/models/ExamResult";
+import { Position } from "../../config/database/models/Position";
+import { AdminRepository } from "../../module/admin/entity/admin.entity";
+
 
 
 export const auth = express.Router()
 const authRepository = new AuthRepository(Admin, User)
-const authService = new AuthService(authRepository)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
+const authService = new AuthService(authRepository, adminRepository)
 
 
-auth.post("/login/admin", validate(LoginSchema), async (req: Request, res: Response) => {
+auth.post("/login/admin", async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {
@@ -40,7 +47,7 @@ auth.post("/login/admin", validate(LoginSchema), async (req: Request, res: Respo
     }
 })
 
-auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Response) => {
+auth.post("/login/user", async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {
@@ -65,7 +72,7 @@ auth.post("/login/user", validate(LoginSchema), async (req: Request, res: Respon
     }
 })
 
-auth.post("/register/admin", validate(RegisterSchema), async (req: Request, res: Response) => {
+auth.post("/register/admin", async (req: Request, res: Response) => {
     try {
         const { username, password } = req.body
         const payload: AuthDto = {

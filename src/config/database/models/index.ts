@@ -4,6 +4,7 @@ import { Question } from "./Question";
 import { Option } from "./Option";
 import { QuestionAnswer } from "./QuestionAnswer";
 import { TestResult } from "./ExamResult";
+import { Position } from "./Position";
 
 
 User.hasMany(TestResult, { foreignKey: "userId" })
@@ -26,3 +27,9 @@ Option.belongsTo(Question, { foreignKey: "questionId" });
 
 Option.hasMany(QuestionAnswer, { foreignKey: "optionId", as: "answers" });
 QuestionAnswer.belongsTo(Option, { foreignKey: "optionId" });
+
+Position.hasMany(User, { foreignKey: "positionId" });
+User.belongsTo(Position, { foreignKey: "positionId", as: "positions" });
+
+Position.hasMany(Test, { foreignKey: "category" });
+Test.belongsTo(Position, { foreignKey: "category" });
