@@ -83,8 +83,8 @@ export class UserService {
         ]);
         if (!existingUser) throw new AppError("User not found", 404);
         if (!existingExam) throw new AppError("Exam not found", 404);
-        const startAt = new Date(existingExam.startAt); // Paksa jadi objek Date
-        const endAt = new Date(existingExam.endAt);     // Paksa jadi objek Date
+        const startAt = new Date(existingExam.startAt);
+        const endAt = new Date(existingExam.endAt);
         if (timeNow.getTime() < startAt.getTime()) throw new AppError("Ujian belum dimulai.", 400);
         if (timeNow.getTime() > endAt.getTime()) throw new AppError("Masa berlaku ujian telah berakhir.", 400);
         let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId);
@@ -107,22 +107,15 @@ export class UserService {
             }
             return existingExamResult;
         } else {
-            try {
-                existingExamResult = await this.userRepository.createExamResult(
-                    userId,
-                    examId,
-                    timeNow,
-                    0,
-                    0,
-                    0,
-                    TestResultStatus.ONGOING,
-                );
-            } catch (error: any) {
-                if (error.name === 'SequelizeUniqueConstraintError') {
-                    return await this.userRepository.findExamResultsByUserId(userId, examId);
-                }
-                throw error;
-            }
+            existingExamResult = await this.userRepository.createExamResult(
+                userId,
+                examId,
+                timeNow,
+                0,
+                0,
+                0,
+                TestResultStatus.ONGOING,
+            );
         }
 
         return existingExamResult;

@@ -11,7 +11,6 @@ import { Option } from "../../config/database/models/Option"
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth"
 import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
-import { sequelize } from "../../config/database/database"
 import { Position } from "../../config/database/models/Position"
 
 export const user = express.Router()
@@ -138,6 +137,7 @@ user.post("/exam/start", async (req: Request, res: Response) => {
                 message: error.message
             });
         }
+        console.log(error)
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -169,3 +169,10 @@ user.post("/exam/submit", async (req: Request, res: Response) => {
     }
 })
 
+
+
+user.get("/me", async (req: Request, res: Response) => {
+    res.status(200).json({
+        data: req.user
+    })
+})
