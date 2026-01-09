@@ -1,10 +1,9 @@
-import { Transaction } from "sequelize";
-import { TestResult, TestResultStatus } from "../../../config/database/models/ExamResult";
+
+import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { AppError } from "../../../utils/app-error";
 import { IAdminRepository } from "../../admin/entity/admin.entity";
 import { IUserRepository } from "../entity/user.entity";
-import { Test } from "../../../config/database/models/Exam";
-import { sequelize } from "../../../config/database/database";
+
 
 
 export class UserService {
@@ -52,10 +51,9 @@ export class UserService {
 
 
     async checkStatusExamHappening(userId: string, examId: string) {
-        const transaction = await sequelize.transaction()
         const [exam, userResult] = await Promise.all([
             this.adminRepository.findExamByID(examId),
-            this.userRepository.findExamResultsByUserId(userId, examId, transaction) // Pastikan filter userId & examId
+            this.userRepository.findExamResultsByUserId(userId, examId) // Pastikan filter userId & examId
         ]);
 
         if (!exam) throw new AppError("Exam not found", 404);
@@ -66,17 +64,18 @@ export class UserService {
         const timeNow = Date.now();
         const timeElapsed = timeNow - startTime;
         const remaining = durationMs - timeElapsed;
-
+        const remainingMs = Math.max(0, durationMs - timeElapsed);
         return {
             user_id: userId,
-            remaining_duration: Math.max(0, remaining), // Jangan sampai minus
+            remaining_duration: Math.max(0, remaining),
+            remaining_duration_minutes: Math.floor(remainingMs / (60 * 1000)),
             is_exam_ongoing: remaining > 0 && userResult.status === TestResultStatus.ONGOING
         };
     }
 
 
 
-    async startExam(userId: string, examId: string, transaction: Transaction) {
+    async startExam(userId: string, examId: string) {
         const timeNow = new Date();
         const [existingUser, existingExam] = await Promise.all([
             this.userRepository.findByUserId(userId),
@@ -84,16 +83,17 @@ export class UserService {
         ]);
         if (!existingUser) throw new AppError("User not found", 404);
         if (!existingExam) throw new AppError("Exam not found", 404);
-        if (timeNow < existingExam.startAt) throw new AppError("Ujian belum dimulai.", 400);
-        if (timeNow > existingExam.endAt) throw new AppError("Masa berlaku ujian telah berakhir.", 400);
-        let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId, transaction);
+        const startAt = new Date(existingExam.startAt);
+        const endAt = new Date(existingExam.endAt);
+        if (timeNow.getTime() < startAt.getTime()) throw new AppError("Ujian belum dimulai.", 400);
+        if (timeNow.getTime() > endAt.getTime()) throw new AppError("Masa berlaku ujian telah berakhir.", 400);
+        let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId);
         if (existingExamResult) {
             if (existingExamResult.status === TestResultStatus.SUBMITTED) {
                 throw new AppError("Ujian sudah selesai dikerjakan.", 400);
             }
             const durationMilliSeconds = (existingExam.durationMinutes ?? 0) * 60 * 1000;
             const timeDiff = timeNow.getTime() - existingExamResult.startedAt.getTime();
-
             if (timeDiff > durationMilliSeconds) {
                 await this.userRepository.updateExamResult(
                     userId,
@@ -102,30 +102,20 @@ export class UserService {
                     existingExamResult.correctCount || 0,
                     existingExamResult.totalQuestions || 0,
                     timeNow,
-                    transaction
                 );
                 throw new AppError("Waktu pengerjaan Anda telah habis.", 400);
             }
             return existingExamResult;
         } else {
-            try {
-                existingExamResult = await this.userRepository.createExamResult(
-                    userId,
-                    examId,
-                    timeNow,
-                    0,
-                    0,
-                    0,
-                    TestResultStatus.ONGOING,
-                    transaction
-                );
-            } catch (error: any) {
-
-                if (error.name === 'SequelizeUniqueConstraintError') {
-                    return await this.userRepository.findExamResultsByUserId(userId, examId, transaction);
-                }
-                throw error;
-            }
+            existingExamResult = await this.userRepository.createExamResult(
+                userId,
+                examId,
+                timeNow,
+                0,
+                0,
+                0,
+                TestResultStatus.ONGOING,
+            );
         }
 
         return existingExamResult;
@@ -133,8 +123,8 @@ export class UserService {
 
 
 
-    async submitExam(userId: string, examId: string, transaction: Transaction) {
-        const userResult = await this.userRepository.findUserResultWithExam(userId, examId, transaction);
+    async submitExam(userId: string, examId: string) {
+        const userResult = await this.userRepository.findUserResultWithExam(userId, examId);
         if (!userResult) {
             throw new AppError("Sesi pengerjaan tidak ditemukan.", 404);
         }
@@ -149,15 +139,15 @@ export class UserService {
 
         if (exam && exam.durationMinutes) {
             const durationMs = exam.durationMinutes * 60 * 1000;
-            const toleranceMs = 30 * 1000; // Toleransi latency 30 detik
+            const toleranceMs = 30 * 1000;
 
             if (now > (startTime + durationMs + toleranceMs)) {
                 throw new Error("Waktu pengerjaan telah habis.");
             }
         }
         const [userAnswers, totalQuestionsCount] = await Promise.all([
-            this.userRepository.findQuestionWithCorrectAnswerOptionsByUserId(userId, examId, transaction),
-            this.userRepository.totalQuestionByExamId(examId, transaction)
+            this.userRepository.findQuestionWithCorrectAnswerOptionsByUserId(userId, examId),
+            this.userRepository.totalQuestionByExamId(examId)
         ])
         userAnswers.forEach((answer: any) => {
             const correctOptionId = answer.Question.options[0]?.id;
@@ -166,7 +156,7 @@ export class UserService {
             }
         });
         const finalScore = totalQuestionsCount > 0 ? (totalCorrect / totalQuestionsCount) * 100 : 0;
-        await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, new Date(), transaction)
+        await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, new Date())
         return {
             score: finalScore,
             summary: {

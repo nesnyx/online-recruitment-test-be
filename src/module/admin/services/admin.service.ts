@@ -1,9 +1,11 @@
 import { AppError } from "../../../utils/app-error";
 import { sendExamInvitation } from "../../../utils/email-gateway";
+import { generateSecurePassword, generateRandomUsername } from "../../../utils/generate-password";
 import { CreateAccountType } from "../dto/create-account.dto";
 import { CreateExamType } from "../dto/create-exam.dto";
 import { CreateOptionType } from "../dto/create-option.dto";
 import { CreateQuestionType } from "../dto/create-question.dto";
+import { UpdateAccountType } from "../dto/update-account.dto";
 import { UpdateExamType } from "../dto/update-exam.dto";
 import { UpdateQuestionType } from "../dto/update-question.dto";
 import { IAdminRepository } from "../entity/admin.entity";
@@ -25,7 +27,16 @@ export class AdminService {
         return await this.adminRepository.findQuestionByID(id)
     }
 
-    async createUserAccount(payload: CreateAccountType) {
+    async createUserAccount(name: string, email: string, positionId?: string) {
+        const password = generateSecurePassword()
+        const username = generateRandomUsername()
+        const payload: CreateAccountType = {
+            name,
+            email,
+            positionId,
+            username,
+            password
+        }
         return await this.adminRepository.createUserAccount(payload)
     }
 
@@ -58,7 +69,17 @@ export class AdminService {
 
 
     async getAllExams() {
-        return await this.adminRepository.findAllExams()
+        const exams = await this.adminRepository.findAllExams()
+        return exams.map((exam: any) => ({
+            id: exam.id,
+            title: exam.title,
+            durationMinutes: exam.durationMinutes,
+            positionId: exam.positionId,
+            category: exam.Position?.name ?? null,
+            startAt: exam.startAt,
+            endAt: exam.endAt,
+            totalQuestions: exam.totalQuestions
+        }))
     }
 
     async getOptionsByQuestionID(id: string) {
@@ -75,6 +96,10 @@ export class AdminService {
 
     async updateQuestion(questionId: string, payload: UpdateQuestionType) {
         return await this.adminRepository.updateQuestionById(questionId, payload)
+    }
+
+    async updateAccount(accountId: string, payload: UpdateAccountType) {
+        return await this.adminRepository.updateAccounts(accountId, payload)
     }
 
     async updateOption(optionId: string, text: string, isCorrect: boolean) {
@@ -119,7 +144,10 @@ export class AdminService {
                 user.name,
                 exam.title,
                 user.username,
-                user.password
+                user.password,
+                exam.startAt,
+                exam.endAt,
+                Number(exam.durationMinutes)
             ));
         });
 

@@ -6,6 +6,7 @@ interface UserPayload {
     id: string;
     username: string;
     role: string;
+    position: string;
 }
 declare global {
     namespace Express {

@@ -96,11 +96,5 @@ TestResult.init(
     {
         sequelize,
         tableName: "test_results",
-        indexes: [
-            {
-                unique: true,
-                fields: ["userId", "testId"], // 1 user = 1 hasil per test
-            },
-        ],
     }
 );

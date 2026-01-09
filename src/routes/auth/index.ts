@@ -7,12 +7,19 @@ import { AuthService } from "../../module/auth/services/auth.service";
 import { AuthDto } from "../../module/auth/dto/auth.dto";
 import { authMiddleware } from "../../module/middleware/auth";
 import { AppError } from "../../utils/app-error";
+import { Test } from "../../config/database/models/Exam";
+import { Option } from "../../config/database/models/Option";
+import { Question } from "../../config/database/models/Question";
+import { TestResult } from "../../config/database/models/ExamResult";
+import { Position } from "../../config/database/models/Position";
+import { AdminRepository } from "../../module/admin/entity/admin.entity";
 
 
 
 export const auth = express.Router()
 const authRepository = new AuthRepository(Admin, User)
-const authService = new AuthService(authRepository)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
+const authService = new AuthService(authRepository, adminRepository)
 
 
 auth.post("/login/admin", async (req: Request, res: Response) => {
