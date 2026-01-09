@@ -5,6 +5,7 @@ import { CreateAccountType } from "../dto/create-account.dto";
 import { CreateExamType } from "../dto/create-exam.dto";
 import { CreateOptionType } from "../dto/create-option.dto";
 import { CreateQuestionType } from "../dto/create-question.dto";
+import { UpdateAccountType } from "../dto/update-account.dto";
 import { UpdateExamType } from "../dto/update-exam.dto";
 import { UpdateQuestionType } from "../dto/update-question.dto";
 import { IAdminRepository } from "../entity/admin.entity";
@@ -97,6 +98,10 @@ export class AdminService {
         return await this.adminRepository.updateQuestionById(questionId, payload)
     }
 
+    async updateAccount(accountId: string, payload: UpdateAccountType) {
+        return await this.adminRepository.updateAccounts(accountId, payload)
+    }
+
     async updateOption(optionId: string, text: string, isCorrect: boolean) {
         return await this.adminRepository.updateOptionById(optionId, text, isCorrect)
     }
@@ -139,7 +144,10 @@ export class AdminService {
                 user.name,
                 exam.title,
                 user.username,
-                user.password
+                user.password,
+                exam.startAt,
+                exam.endAt,
+                Number(exam.durationMinutes)
             ));
         });
 

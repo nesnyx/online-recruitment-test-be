@@ -170,7 +170,6 @@ user.post("/exam/submit", async (req: Request, res: Response) => {
 })
 
 
-
 user.get("/me", async (req: Request, res: Response) => {
     res.status(200).json({
         data: req.user

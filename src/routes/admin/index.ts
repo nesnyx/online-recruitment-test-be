@@ -16,6 +16,7 @@ import { TestResult } from "../../config/database/models/ExamResult";
 import { UpdateQuestionType } from "../../module/admin/dto/update-question.dto";
 import { Position } from "../../config/database/models/Position";
 import { UpdateExamType } from "../../module/admin/dto/update-exam.dto";
+import { UpdateAccountType } from "../../module/admin/dto/update-account.dto";
 
 
 
@@ -79,6 +80,34 @@ admin.post("/accounts", async (req: Request, res: Response) => {
             success: true,
             data: user,
             message: "User created successfully"
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.patch("/accounts/:id", async (req: Request, res: Response) => {
+    const id = req.params.id
+    try {
+        const { name, email, position } = req.body
+        const payload: UpdateAccountType = {
+            name,
+            email,
+            position
+        }
+        const updatedUser = await adminService.updateAccount(id, payload)
+        res.status(200).json({
+            success: true,
+            data: updatedUser
         })
     } catch (error) {
         if (error instanceof AppError) {
