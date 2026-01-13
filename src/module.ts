@@ -11,13 +11,13 @@ export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
         app.use(cors({
-            origin: "*"
-        }))
+            origin: "*",
+
+        }));
         app.use(express.json())
         app.use(morgan("dev"))
         app.use(urlencoded({ extended: true }))
         app.use("/api/v1", router)
-        Object.setPrototypeOf(this, ApplicationModule.prototype)
     }
 
     async start() {

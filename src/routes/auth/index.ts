@@ -13,12 +13,15 @@ import { Question } from "../../config/database/models/Question";
 import { TestResult } from "../../config/database/models/ExamResult";
 import { Position } from "../../config/database/models/Position";
 import { AdminRepository } from "../../module/admin/entity/admin.entity";
+import { ExamAccounts } from "../../config/database/models/ExamAccounts";
+import { AdminService } from "../../module/admin/services/admin.service";
 
 
 
 export const auth = express.Router()
 const authRepository = new AuthRepository(Admin, User)
-const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position, ExamAccounts)
+const adminService = new AdminService(adminRepository)
 const authService = new AuthService(authRepository, adminRepository)
 
 
@@ -95,10 +98,10 @@ auth.post("/register/admin", async (req: Request, res: Response) => {
     }
 })
 
-auth.get("/me", authMiddleware, async (req: Request, res: Response) => {
+auth.get("/me", authMiddleware(adminService), async (req: Request, res: Response) => {
     try {
         const user = req.user
-        res.status(200).json(user)
+        return res.status(200).json(user)
     } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
