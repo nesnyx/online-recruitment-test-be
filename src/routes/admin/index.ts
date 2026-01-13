@@ -6,7 +6,6 @@ import { Option } from "../../config/database/models/Option";
 import { Question } from "../../config/database/models/Question";
 import { User } from "../../config/database/models/User";
 import { AppError } from "../../utils/app-error";
-import { CreateAccountType } from "../../module/admin/dto/create-account.dto";
 import { CreateExamType } from "../../module/admin/dto/create-exam.dto";
 import { CreateOptionType } from "../../module/admin/dto/create-option.dto";
 import { CreateQuestionType } from "../../module/admin/dto/create-question.dto";
@@ -17,17 +16,18 @@ import { UpdateQuestionType } from "../../module/admin/dto/update-question.dto";
 import { Position } from "../../config/database/models/Position";
 import { UpdateExamType } from "../../module/admin/dto/update-exam.dto";
 import { UpdateAccountType } from "../../module/admin/dto/update-account.dto";
+import { ExamAccounts } from "../../config/database/models/ExamAccounts";
 
 
 
 export const admin = express.Router()
 
-const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position, ExamAccounts)
 const adminService = new AdminService(adminRepository)
 
-admin.use(authMiddleware)
+admin.use(authMiddleware(adminService))
 
-admin.get("/accounts", async (req: Request, res: Response, next: NextFunction) => {
+admin.get("/accounts", async (req: Request, res: Response) => {
     try {
         const users = await adminService.getAllUserAccount()
         res.status(200).json({
@@ -293,7 +293,7 @@ admin.get("/exams/:examId", async (req: Request, res: Response) => {
 })
 
 
-admin.get("/exams/results", async (req: Request, res: Response) => {
+admin.get("/exams/candidates/results", async (req: Request, res: Response) => {
     try {
         const results = await adminService.getResults()
         res.status(200).json({
@@ -546,7 +546,6 @@ admin.patch("/positions/:id", async (req: Request, res: Response) => {
         });
     }
 })
-
 
 admin.post("/accounts/invitation", roleMiddleware(Role.ADMIN), async (req: Request, res: Response) => {
     try {

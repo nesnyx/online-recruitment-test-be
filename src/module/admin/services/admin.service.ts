@@ -127,41 +127,39 @@ export class AdminService {
         }
     };
     async sendInvitation(examId: string, userIds: string[]) {
-
         const [exam, users] = await Promise.all([
             this.adminRepository.findExamByID(examId),
             this.adminRepository.findUsersByIds(userIds)
         ]);
-
         if (!exam) throw new AppError("Ujian tidak ditemukan", 404);
         if (users.length === 0) throw new AppError("Daftar user kosong", 400);
         const missingCount = userIds.length - users.length;
         const limit = pLimit(5);
-
         const emailPromises = users.map(user => {
-            return limit(() => sendExamInvitation(
-                user.email,
-                user.name,
-                exam.title,
-                user.username,
-                user.password,
-                exam.startAt,
-                exam.endAt,
-                Number(exam.durationMinutes)
-            ));
+            return limit(() => {
+
+                return sendExamInvitation(
+                    user.email,
+                    user.name,
+                    exam.title,
+                    user.username,
+                    user.password,
+                    exam.startAt,
+                    exam.endAt,
+                    Number(exam.durationMinutes)
+                );
+            });
         });
 
         const results = await Promise.allSettled(emailPromises);
-
         const successCount = results.filter(r => r.status === 'fulfilled').length;
         const failedCount = results.length - successCount;
-
         return {
             totalRequested: userIds.length,
             totalFound: users.length,
             successCount,
             failedCount,
-            missingInDb: missingCount, // Memberi tahu admin jika ada ID yang typo/salah
+            missingInDb: missingCount,
             results: results.map(r => r.status)
         };
     }
@@ -181,6 +179,10 @@ export class AdminService {
 
     async updatePositionById(id: string, name: string) {
         return await this.adminRepository.updatePositionById(id, name)
+    }
+
+    async findExamAccountByUserId(id: string) {
+        return await this.adminRepository.findExamAccountByUserId(id)
     }
 
 }

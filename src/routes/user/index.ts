@@ -12,11 +12,12 @@ import { authMiddleware, roleMiddleware } from "../../module/middleware/auth"
 import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
 import { Position } from "../../config/database/models/Position"
+import { ExamAccounts } from "../../config/database/models/ExamAccounts"
 
 export const user = express.Router()
 
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
-const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position)
+const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position, ExamAccounts)
 const userService = new UserService(userRepository, adminRepository)
 
 
