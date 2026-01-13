@@ -13,6 +13,7 @@ import { UpdateExamType } from "../dto/update-exam.dto"
 import { UpdateQuestionType } from "../dto/update-question.dto"
 import { Position } from "../../../config/database/models/Position"
 import { UpdateAccountType } from "../dto/update-account.dto"
+import { ExamAccounts } from "../../../config/database/models/ExamAccounts"
 
 export interface IAdminRepository {
     findUserAccountByID(id: string): Promise<User>
@@ -40,10 +41,12 @@ export interface IAdminRepository {
     createPosition(name: string): Promise<Position>
     deletePositionById(id: string): Promise<boolean>
     updatePositionById(id: string, name: string): Promise<Position>
+    createExamAccounts(userId: string, testId: string): Promise<ExamAccounts>
+    findExamAccountByUserId(id: string): Promise<ExamAccounts | null>
 }
 
 export class AdminRepository implements IAdminRepository {
-    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question, private testResult: typeof TestResult, private position: typeof Position) { }
+    constructor(private user: typeof User, private exam: typeof Test, private option: typeof Option, private question: typeof Question, private testResult: typeof TestResult, private position: typeof Position, private examAccounts: typeof ExamAccounts) { }
     async findUserAccountByID(id: string): Promise<User> {
         const userAccount = await this.user.findByPk(id)
         if (!userAccount) {
@@ -277,5 +280,16 @@ export class AdminRepository implements IAdminRepository {
             throw new AppError('Position not found', 404)
         }
         return await position.update({ name })
+    }
+
+    async createExamAccounts(userId: string, testId: string): Promise<ExamAccounts> {
+        return await this.examAccounts.create({
+            examId: testId,
+            accountId: userId
+        })
+    }
+
+    async findExamAccountByUserId(id: string): Promise<ExamAccounts | null> {
+        return await this.examAccounts.findOne({ where: { accountId: id } })
     }
 }
