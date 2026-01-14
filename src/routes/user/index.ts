@@ -13,15 +13,17 @@ import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
 import { Position } from "../../config/database/models/Position"
 import { ExamAccounts } from "../../config/database/models/ExamAccounts"
+import { AdminService } from "../../module/admin/services/admin.service"
 
 export const user = express.Router()
 
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
 const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position, ExamAccounts)
+const adminService = new AdminService(adminRepository)
 const userService = new UserService(userRepository, adminRepository)
 
 
-user.use(authMiddleware, roleMiddleware(Role.USER))
+user.use(authMiddleware(adminService), roleMiddleware(Role.USER))
 user.get("/exam/:examId/status", async (req: Request, res: Response) => {
     const examId = req.params.examId
     try {

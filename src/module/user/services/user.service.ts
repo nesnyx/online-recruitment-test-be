@@ -53,23 +53,50 @@ export class UserService {
     async checkStatusExamHappening(userId: string, examId: string) {
         const [exam, userResult] = await Promise.all([
             this.adminRepository.findExamByID(examId),
-            this.userRepository.findExamResultsByUserId(userId, examId) // Pastikan filter userId & examId
+            this.userRepository.findExamResultsByUserId(userId, examId)
         ]);
 
         if (!exam) throw new AppError("Exam not found", 404);
-        if (!userResult) return { is_exam_ongoing: false, message: "Belum memulai ujian" };
+
+        if (!userResult) {
+            return {
+                is_allowed_to_start: true,
+                is_exam_ongoing: false,
+                message: "Siap dimulai"
+            };
+        }
+
+        if (userResult.status === TestResultStatus.SUBMITTED) {
+            return {
+                is_allowed_to_start: false,
+                is_exam_ongoing: false,
+                is_exam_completed: true,
+                message: "Ujian sudah selesai dikerjakan dan dikirim."
+            };
+        }
+
 
         const startTime = userResult.startedAt.getTime();
         const durationMs = (exam.durationMinutes ?? 0) * 60 * 1000;
         const timeNow = Date.now();
         const timeElapsed = timeNow - startTime;
-        const remaining = durationMs - timeElapsed;
         const remainingMs = Math.max(0, durationMs - timeElapsed);
+
+
+        if (remainingMs <= 0) {
+            return {
+                is_allowed_to_start: false,
+                is_exam_ongoing: false,
+                message: "Waktu ujian telah habis."
+            };
+        }
+
         return {
             user_id: userId,
-            remaining_duration: Math.max(0, remaining),
+            remaining_duration_ms: remainingMs,
             remaining_duration_minutes: Math.floor(remainingMs / (60 * 1000)),
-            is_exam_ongoing: remaining > 0 && userResult.status === TestResultStatus.ONGOING
+            is_allowed_to_start: false,
+            is_exam_ongoing: true
         };
     }
 

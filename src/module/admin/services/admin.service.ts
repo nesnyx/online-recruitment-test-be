@@ -73,12 +73,13 @@ export class AdminService {
         return exams.map((exam: any) => ({
             id: exam.id,
             title: exam.title,
+            description: exam.description,
             durationMinutes: exam.durationMinutes,
             positionId: exam.positionId,
             category: exam.Position?.name ?? null,
             startAt: exam.startAt,
             endAt: exam.endAt,
-            totalQuestions: exam.totalQuestions
+            totalQuestions: exam.totalQuestions || exam.getDataValue('totalQuestions') || 0,
         }))
     }
 
@@ -115,7 +116,16 @@ export class AdminService {
     }
 
     async getResults() {
-        return await this.adminRepository.findResults()
+        const results = await this.adminRepository.findResults()
+        return results.map((result: any) => ({
+            id: result.id,
+            score: result.score,
+            status: result.status,
+            name: result.User.name,
+            email: result.User.email,
+            exam: result.Test.title,
+            date: result.createdAt,
+        }))
     }
     private retry = async (fn: () => Promise<any>, retries = 3, delay = 2000): Promise<any> => {
         try {
@@ -136,8 +146,8 @@ export class AdminService {
         const missingCount = userIds.length - users.length;
         const limit = pLimit(5);
         const emailPromises = users.map(user => {
-            return limit(() => {
-
+            return limit(async () => {
+                await this.adminRepository.createExamAccounts(user.id, examId)
                 return sendExamInvitation(
                     user.email,
                     user.name,
@@ -150,7 +160,6 @@ export class AdminService {
                 );
             });
         });
-
         const results = await Promise.allSettled(emailPromises);
         const successCount = results.filter(r => r.status === 'fulfilled').length;
         const failedCount = results.length - successCount;

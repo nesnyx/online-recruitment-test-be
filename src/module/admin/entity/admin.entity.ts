@@ -115,14 +115,14 @@ export class AdminRepository implements IAdminRepository {
                 'id',
                 'title',
                 'durationMinutes',
+                'description',
                 'startAt',
                 'endAt',
                 [
                     Sequelize.literal(`(
                     SELECT COUNT(*)
-                    FROM Questions AS question
-                    WHERE
-                        question.testId = Test.id
+                    FROM questions
+                    WHERE questions.testId = Test.id
                 )`),
                     'totalQuestions'
                 ]
@@ -182,7 +182,11 @@ export class AdminRepository implements IAdminRepository {
         if (!user) {
             throw new AppError('User not found', 404)
         }
-        return await user.update(payload)
+        return await user.update({
+            name: payload.name,
+            email: payload.email,
+            positionId: payload.position
+        })
     }
     async deleteQuestionById(id: string): Promise<boolean> {
         const question = await this.question.findByPk(id)
@@ -235,7 +239,19 @@ export class AdminRepository implements IAdminRepository {
     }
 
     async findResults(): Promise<TestResult[]> {
-        return await this.testResult.findAll()
+        return await this.testResult.findAll({
+            attributes: ['id', 'score', 'status', 'createdAt'],
+            include: [
+                {
+                    model: this.user,
+                    attributes: ['id', 'name', 'email']
+                },
+                {
+                    model: this.exam,
+                    attributes: ['id', 'title']
+                }
+            ]
+        })
     }
 
     async findUsersByIds(userIds: string[]): Promise<User[]> {
