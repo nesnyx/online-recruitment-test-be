@@ -1,13 +1,14 @@
 
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { AppError } from "../../../utils/app-error";
-import { IAdminRepository } from "../../admin/entity/admin.entity";
+import { AdminExamService } from "../../admin/services/admin.exam.service";
+import { AdminQuestionService } from "../../admin/services/admin.question.service";
 import { IUserRepository } from "../entity/user.entity";
 
 
 
 export class UserService {
-    constructor(private readonly userRepository: IUserRepository, private readonly adminRepository: IAdminRepository) { }
+    constructor(private readonly userRepository: IUserRepository,private readonly questionService : AdminQuestionService,private readonly examService : AdminExamService) { }
 
     async findByUserId(userId: string) {
         const user = await this.userRepository.findByUserId(userId)
@@ -20,7 +21,7 @@ export class UserService {
     async createOrUpdateQuestionAnswer(userId: string, optionId: string, questionId: string) {
         const [existingUser, existingQuestion] = await Promise.all([
             this.userRepository.findByUserId(userId),
-            this.adminRepository.findQuestionByID(questionId)
+            this.questionService.findQuestionByID(questionId)
         ])
         if (!existingUser) throw new AppError("User not found", 404)
         if (!existingQuestion) throw new AppError("Question not found", 404)
@@ -30,7 +31,7 @@ export class UserService {
 
     async findQuestionExam(examId: string) {
         const [existingExam, questions] = await Promise.all([
-            this.adminRepository.findExamByID(examId),
+            this.examService.findExamByID(examId),
             this.userRepository.findQuestionExam(examId)
         ])
         if (!existingExam) throw new AppError("Exam not found", 404)
@@ -52,7 +53,7 @@ export class UserService {
 
     async checkStatusExamHappening(userId: string, examId: string) {
         const [exam, userResult] = await Promise.all([
-            this.adminRepository.findExamByID(examId),
+            this.examService.findExamByID(examId),
             this.userRepository.findExamResultsByUserId(userId, examId)
         ]);
 
@@ -106,7 +107,7 @@ export class UserService {
         const timeNow = new Date();
         const [existingUser, existingExam] = await Promise.all([
             this.userRepository.findByUserId(userId),
-            this.adminRepository.findExamByID(examId)
+            this.examService.findExamByID(examId)
         ]);
         if (!existingUser) throw new AppError("User not found", 404);
         if (!existingExam) throw new AppError("Exam not found", 404);

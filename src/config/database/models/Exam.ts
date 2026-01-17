@@ -65,6 +65,7 @@ Test.init(
     },
     {
         sequelize,
+        paranoid:true,
         tableName: "tests",
     }
 );

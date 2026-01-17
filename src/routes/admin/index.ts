@@ -1,35 +1,26 @@
 import express, { Request, Response, NextFunction } from "express";
-import { AdminRepository } from "../../module/admin/entity/admin.entity";
-import { AdminService } from "../../module/admin/services/admin.service";
-import { Test } from "../../config/database/models/Exam";
-import { Option } from "../../config/database/models/Option";
-import { Question } from "../../config/database/models/Question";
-import { User } from "../../config/database/models/User";
 import { AppError } from "../../utils/app-error";
 import { CreateExamType } from "../../module/admin/dto/create-exam.dto";
 import { CreateOptionType } from "../../module/admin/dto/create-option.dto";
 import { CreateQuestionType } from "../../module/admin/dto/create-question.dto";
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth";
 import { Role } from "../../module/auth/services/auth.service";
-import { TestResult } from "../../config/database/models/ExamResult";
 import { UpdateQuestionType } from "../../module/admin/dto/update-question.dto";
-import { Position } from "../../config/database/models/Position";
 import { UpdateExamType } from "../../module/admin/dto/update-exam.dto";
 import { UpdateAccountType } from "../../module/admin/dto/update-account.dto";
-import { ExamAccounts } from "../../config/database/models/ExamAccounts";
+import { adminExamAccountService, adminExamService, adminOptionService, adminPositionService, adminQuestionService, adminResultService, adminUserService, sendInvitation } from "../../container";
 
 
 
 export const admin = express.Router()
 
-const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position, ExamAccounts)
-const adminService = new AdminService(adminRepository)
 
-admin.use(authMiddleware(adminService))
+
+admin.use(authMiddleware(adminExamAccountService))
 
 admin.get("/accounts", async (req: Request, res: Response) => {
     try {
-        const users = await adminService.getAllUserAccount()
+        const users = await adminUserService.getAllUserAccount()
         res.status(200).json({
             success: true,
             data: users
@@ -52,7 +43,7 @@ admin.get("/accounts", async (req: Request, res: Response) => {
 admin.get("/accounts/:id", async (req: Request, res: Response) => {
     const id = req.params.id
     try {
-        const user = await adminService.findUserAccountByID(id)
+        const user = await adminUserService.findUserAccountByID(id)
         res.status(200).json({
             "username": user.name,
             "email": user.email,
@@ -74,8 +65,8 @@ admin.get("/accounts/:id", async (req: Request, res: Response) => {
 admin.post("/accounts", async (req: Request, res: Response) => {
     try {
         const { name, email, positionId } = req.body
-        await adminService.getPositionById(positionId)
-        const user = await adminService.createUserAccount(name, email, positionId)
+        await adminPositionService.getPositionById(positionId)
+        const user = await adminUserService.createUserAccount(name, email, positionId)
         res.status(200).json({
             success: true,
             data: user,
@@ -104,7 +95,7 @@ admin.patch("/accounts/:id", async (req: Request, res: Response) => {
             email,
             position
         }
-        const updatedUser = await adminService.updateAccount(id, payload)
+        const updatedUser = await adminUserService.updateAccount(id, payload)
         res.status(200).json({
             success: true,
             data: updatedUser
@@ -126,7 +117,7 @@ admin.patch("/accounts/:id", async (req: Request, res: Response) => {
 
 admin.get("/exams", async (req: Request, res: Response) => {
     try {
-        const exams = await adminService.getAllExams()
+        const exams = await adminExamService.getAllExams()
         res.status(200).json({
             success: true,
             data: exams
@@ -157,7 +148,7 @@ admin.post("/exams", async (req: Request, res: Response) => {
             durationMinutes,
             categoryId
         }
-        const exam = await adminService.createExam(payload)
+        const exam = await adminExamService.createExam(payload)
         res.status(200).json(exam)
     } catch (error) {
         if (error instanceof AppError) {
@@ -178,13 +169,13 @@ admin.post("/questions/:questionId/options", async (req: Request, res: Response)
     const questionId = req.params.questionId
     try {
         const { isCorrect, text } = req.body
-        const question = await adminService.findQuestionByID(questionId)
+        const question = await adminQuestionService.findQuestionByID(questionId)
         const payload: CreateOptionType = {
             questionId: question.id,
             isCorrect,
             text
         }
-        const option = await adminService.createOption(payload)
+        const option = await adminOptionService.createOption(payload)
         res.status(200).json(option)
 
     } catch (error) {
@@ -204,7 +195,7 @@ admin.post("/questions/:questionId/options", async (req: Request, res: Response)
 admin.get("/questions/:questionId/options", async (req: Request, res: Response) => {
     const questionId = req.params.questionId
     try {
-        const options = await adminService.getOptionsByQuestionID(questionId)
+        const options = await adminOptionService.getOptionsByQuestionID(questionId)
         res.status(200).json({
             status: true,
             data: options
@@ -227,12 +218,12 @@ admin.post("/exams/:examId/questions", async (req: Request, res: Response) => {
     const examId = req.params.examId
     try {
         const { text } = req.body
-        const exam = await adminService.findExamByID(examId)
+        const exam = await adminExamService.findExamByID(examId)
         const payload: CreateQuestionType = {
             testId: exam.id,
             text
         }
-        const question = await adminService.createQuestion(payload)
+        const question = await adminQuestionService.createQuestion(payload)
         res.status(200).json({
             data: question,
             succes: true,
@@ -255,7 +246,7 @@ admin.post("/exams/:examId/questions", async (req: Request, res: Response) => {
 admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
-        const exam = await adminService.getQuestionWithOptions(examId)
+        const exam = await adminQuestionService.getQuestionWithOptions(examId)
         res.status(200).json({
             data: exam,
         })
@@ -277,7 +268,7 @@ admin.get("/exams/:examId/questions", async (req: Request, res: Response) => {
 admin.get("/exams/:examId", async (req: Request, res: Response) => {
     try {
         const examId = req.params.examId
-        const exam = await adminService.findExamByID(examId)
+        const exam = await adminExamService.findExamByID(examId)
         res.status(200).json(exam)
     } catch (error) {
         if (error instanceof AppError) {
@@ -296,7 +287,7 @@ admin.get("/exams/:examId", async (req: Request, res: Response) => {
 
 admin.get("/exams/candidates/results", async (req: Request, res: Response) => {
     try {
-        const results = await adminService.getResults()
+        const results = await adminResultService.getResults()
         res.status(200).json({
             success: true,
             data: results
@@ -327,7 +318,7 @@ admin.patch("/exams/:examId", async (req: Request, res: Response) => {
             startAt: req.body.startAt,
             endAt: req.body.endAt,
         }
-        const updatedExam = await adminService.updateExam(examId, payload);
+        const updatedExam = await adminExamService.updateExam(examId, payload);
         res.status(200).json({
             success: true,
             data: updatedExam
@@ -354,7 +345,7 @@ admin.patch("/questions/:id", async (req: Request, res: Response) => {
         const payload: UpdateQuestionType = {
             text
         }
-        const updatedQuestion = await adminService.updateQuestion(questionId, payload)
+        const updatedQuestion = await adminQuestionService.updateQuestion(questionId, payload)
         res.status(200).json({
             success: true,
             data: updatedQuestion
@@ -377,7 +368,7 @@ admin.patch("/options/:id", async (req: Request, res: Response) => {
     try {
         const optionId = req.params.id
         const { text, isCorrect } = req.body
-        const updatedOption = await adminService.updateOption(optionId, text, isCorrect)
+        const updatedOption = await adminOptionService.updateOption(optionId, text, isCorrect)
         res.status(200).json({
             success: true,
             data: updatedOption
@@ -399,7 +390,7 @@ admin.patch("/options/:id", async (req: Request, res: Response) => {
 admin.delete("/questions/:id", async (req: Request, res: Response) => {
     try {
         const questionId = req.params.id
-        await adminService.deleteQuestion(questionId)
+        await adminQuestionService.deleteQuestion(questionId)
         res.status(200).json({
             success: true,
         })
@@ -420,7 +411,28 @@ admin.delete("/questions/:id", async (req: Request, res: Response) => {
 admin.delete("/options/:id", async (req: Request, res: Response) => {
     try {
         const optionId = req.params.id
-        await adminService.deleteOption(optionId)
+        await adminOptionService.deleteOption(optionId)
+        res.status(200).json({
+            success: true,
+        })
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
+admin.delete("/accounts/:id", async (req: Request, res: Response) => {
+    const accountId = req.params.id
+    try {
+        await adminUserService.deleteAccountById(accountId)
         res.status(200).json({
             success: true,
         })
@@ -439,9 +451,31 @@ admin.delete("/options/:id", async (req: Request, res: Response) => {
 })
 
 
+admin.delete("/exam/:examId",async (req: Request, res:Response) =>{
+    const {examId} = req.params
+    try {
+        const deleted = await adminExamService.deleteExamById(examId)
+        res.status(200).json({
+            success: true,
+            data:deleted
+        }) 
+    } catch (error) {
+        if (error instanceof AppError) {
+            return res.status(error.statusCode).json({
+                status: "error",
+                message: error.message
+            });
+        }
+        return res.status(500).json({
+            status: "error",
+            message: "Internal Server Error"
+        });
+    }
+})
+
 admin.get("/positions", async (req: Request, res: Response) => {
     try {
-        const positions = await adminService.getAllPositions()
+        const positions = await adminPositionService.getAllPositions()
         res.status(200).json({
             success: true,
             data: positions
@@ -463,7 +497,7 @@ admin.get("/positions", async (req: Request, res: Response) => {
 admin.get("/positions/:id", async (req: Request, res: Response) => {
     try {
         const positionId = req.params.id
-        const position = await adminService.getPositionById(positionId)
+        const position = await adminPositionService.getPositionById(positionId)
         res.status(200).json({
             success: true,
             data: position
@@ -485,7 +519,7 @@ admin.get("/positions/:id", async (req: Request, res: Response) => {
 admin.post("/positions", async (req: Request, res: Response) => {
     try {
         const { name } = req.body
-        const position = await adminService.createPosition(name)
+        const position = await adminPositionService.createPosition(name)
         res.status(200).json({
             success: true,
             data: position
@@ -507,7 +541,7 @@ admin.post("/positions", async (req: Request, res: Response) => {
 admin.delete("/positions/:id", async (req: Request, res: Response) => {
     try {
         const positionId = req.params.id
-        await adminService.deletePositionById(positionId)
+        await adminPositionService.deletePositionById(positionId)
         res.status(200).json({
             success: true,
         })
@@ -529,7 +563,7 @@ admin.patch("/positions/:id", async (req: Request, res: Response) => {
     try {
         const positionId = req.params.id
         const { name } = req.body
-        const updatedPosition = await adminService.updatePositionById(positionId, name)
+        const updatedPosition = await adminPositionService.updatePositionById(positionId, name)
         res.status(200).json({
             success: true,
             data: updatedPosition
@@ -557,7 +591,7 @@ admin.post("/accounts/invitation", roleMiddleware(Role.ADMIN), async (req: Reque
                 message: "userIds harus berupa array dan tidak boleh kosong"
             });
         }
-        const invitation = await adminService.sendInvitation(examId, userIds)
+        const invitation = await sendInvitation.sendInvitation(examId, userIds)
         res.status(200).json({
             success: true,
             data: invitation

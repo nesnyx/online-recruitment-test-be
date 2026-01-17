@@ -11,7 +11,7 @@ export class ApplicationModule {
     constructor(public app: Application, public sequelize: Sequelize) {
         app.set('trust-proxy', true)
         app.use(cors({
-            origin: "https://rekrutmen.ridjstudio.cloud",
+            origin: ["https://rekrutmen.ridjstudio.cloud", "https://asseshub.vercel.app", "http://localhost:4400"],
 
         }));
         app.use(express.json())
