@@ -5,23 +5,22 @@ import { User } from "../../config/database/models/User"
 import { Question } from "../../config/database/models/Question"
 import { QuestionAnswer } from "../../config/database/models/QuestionAnswer"
 import { TestResult } from "../../config/database/models/ExamResult"
-import { AdminRepository } from "../../module/admin/entity/admin.entity"
 import { Test } from "../../config/database/models/Exam"
 import { Option } from "../../config/database/models/Option"
 import { authMiddleware, roleMiddleware } from "../../module/middleware/auth"
 import { Role } from "../../module/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
-import { Position } from "../../config/database/models/Position"
-import { ExamAccounts } from "../../config/database/models/ExamAccounts"
+import { adminExamAccountService, adminExamService, adminQuestionService } from "../../container"
+
+
 
 export const user = express.Router()
 
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
-const adminRepository = new AdminRepository(User, Test, Option, Question, TestResult, Position, ExamAccounts)
-const userService = new UserService(userRepository, adminRepository)
+const userService = new UserService(userRepository,adminQuestionService,adminExamService)
 
 
-user.use(authMiddleware, roleMiddleware(Role.USER))
+user.use(authMiddleware(adminExamAccountService), roleMiddleware(Role.USER))
 user.get("/exam/:examId/status", async (req: Request, res: Response) => {
     const examId = req.params.examId
     try {

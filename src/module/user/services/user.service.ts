@@ -1,13 +1,14 @@
 
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { AppError } from "../../../utils/app-error";
-import { IAdminRepository } from "../../admin/entity/admin.entity";
+import { AdminExamService } from "../../admin/services/admin.exam.service";
+import { AdminQuestionService } from "../../admin/services/admin.question.service";
 import { IUserRepository } from "../entity/user.entity";
 
 
 
 export class UserService {
-    constructor(private readonly userRepository: IUserRepository, private readonly adminRepository: IAdminRepository) { }
+    constructor(private readonly userRepository: IUserRepository,private readonly questionService : AdminQuestionService,private readonly examService : AdminExamService) { }
 
     async findByUserId(userId: string) {
         const user = await this.userRepository.findByUserId(userId)
@@ -20,7 +21,7 @@ export class UserService {
     async createOrUpdateQuestionAnswer(userId: string, optionId: string, questionId: string) {
         const [existingUser, existingQuestion] = await Promise.all([
             this.userRepository.findByUserId(userId),
-            this.adminRepository.findQuestionByID(questionId)
+            this.questionService.findQuestionByID(questionId)
         ])
         if (!existingUser) throw new AppError("User not found", 404)
         if (!existingQuestion) throw new AppError("Question not found", 404)
@@ -30,7 +31,7 @@ export class UserService {
 
     async findQuestionExam(examId: string) {
         const [existingExam, questions] = await Promise.all([
-            this.adminRepository.findExamByID(examId),
+            this.examService.findExamByID(examId),
             this.userRepository.findQuestionExam(examId)
         ])
         if (!existingExam) throw new AppError("Exam not found", 404)
@@ -52,24 +53,51 @@ export class UserService {
 
     async checkStatusExamHappening(userId: string, examId: string) {
         const [exam, userResult] = await Promise.all([
-            this.adminRepository.findExamByID(examId),
-            this.userRepository.findExamResultsByUserId(userId, examId) // Pastikan filter userId & examId
+            this.examService.findExamByID(examId),
+            this.userRepository.findExamResultsByUserId(userId, examId)
         ]);
 
         if (!exam) throw new AppError("Exam not found", 404);
-        if (!userResult) return { is_exam_ongoing: false, message: "Belum memulai ujian" };
+
+        if (!userResult) {
+            return {
+                is_allowed_to_start: true,
+                is_exam_ongoing: false,
+                message: "Siap dimulai"
+            };
+        }
+
+        if (userResult.status === TestResultStatus.SUBMITTED) {
+            return {
+                is_allowed_to_start: false,
+                is_exam_ongoing: false,
+                is_exam_completed: true,
+                message: "Ujian sudah selesai dikerjakan dan dikirim."
+            };
+        }
+
 
         const startTime = userResult.startedAt.getTime();
         const durationMs = (exam.durationMinutes ?? 0) * 60 * 1000;
         const timeNow = Date.now();
         const timeElapsed = timeNow - startTime;
-        const remaining = durationMs - timeElapsed;
         const remainingMs = Math.max(0, durationMs - timeElapsed);
+
+
+        if (remainingMs <= 0) {
+            return {
+                is_allowed_to_start: false,
+                is_exam_ongoing: false,
+                message: "Waktu ujian telah habis."
+            };
+        }
+
         return {
             user_id: userId,
-            remaining_duration: Math.max(0, remaining),
+            remaining_duration_ms: remainingMs,
             remaining_duration_minutes: Math.floor(remainingMs / (60 * 1000)),
-            is_exam_ongoing: remaining > 0 && userResult.status === TestResultStatus.ONGOING
+            is_allowed_to_start: false,
+            is_exam_ongoing: true
         };
     }
 
@@ -79,7 +107,7 @@ export class UserService {
         const timeNow = new Date();
         const [existingUser, existingExam] = await Promise.all([
             this.userRepository.findByUserId(userId),
-            this.adminRepository.findExamByID(examId)
+            this.examService.findExamByID(examId)
         ]);
         if (!existingUser) throw new AppError("User not found", 404);
         if (!existingExam) throw new AppError("Exam not found", 404);

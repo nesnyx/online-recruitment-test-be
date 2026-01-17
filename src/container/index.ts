@@ -1,0 +1,39 @@
+import { Test } from "../config/database/models/Exam";
+import { ExamAccounts } from "../config/database/models/ExamAccounts";
+import { TestResult } from "../config/database/models/ExamResult";
+import { Option } from "../config/database/models/Option";
+import { Position } from "../config/database/models/Position";
+import { Question } from "../config/database/models/Question";
+import { User } from "../config/database/models/User";
+import { AdminExamAccountRepository } from "../module/admin/repository/admin.exam-account.repository";
+import { AdminExamRepository } from "../module/admin/repository/admin.exam.repository";
+import { AdminOptionRepostory } from "../module/admin/repository/admin.option.repository";
+import { AdminPositionRepository } from "../module/admin/repository/admin.position.repository";
+import { AdminQuestionRepository } from "../module/admin/repository/admin.question.repository";
+import { AdminResultsRepository } from "../module/admin/repository/admin.results.repository";
+import { AdminUserRepository } from "../module/admin/repository/admin.user.repository";
+import { AdminExamAccountService } from "../module/admin/services/admin.exam-account.service";
+import { AdminExamService } from "../module/admin/services/admin.exam.service";
+import { AdminOptionService } from "../module/admin/services/admin.option.service";
+import { AdminPositionService } from "../module/admin/services/admin.position.service";
+import { AdminQuestionService } from "../module/admin/services/admin.question.service";
+import { AdminResultService } from "../module/admin/services/admin.results.service";
+import { SendInvitationService } from "../module/admin/services/admin.send-invitation.service";
+import { AdminUserService } from "../module/admin/services/admin.user.service";
+
+
+const adminPositionRepository = new AdminPositionRepository(Position)
+const adminExamRepository = new AdminExamRepository(Test, Position)
+export const adminExamService = new AdminExamService(adminExamRepository,adminPositionRepository)
+export const adminPositionService = new AdminPositionService(adminPositionRepository)
+const adminUserRepository = new AdminUserRepository(User, Position)
+export const adminUserService = new AdminUserService(adminUserRepository)
+const adminOptionRepository = new AdminOptionRepostory(Option)
+export const adminOptionService = new AdminOptionService(adminOptionRepository)
+const adminQuestionRepository = new AdminQuestionRepository(Question,Option,Test)
+export const adminQuestionService = new AdminQuestionService(adminQuestionRepository)
+const adminResultRepository =new AdminResultsRepository(User, Test, TestResult)
+export const adminResultService = new AdminResultService(adminResultRepository)
+const adminExamAccountRepository = new AdminExamAccountRepository(ExamAccounts)
+export const adminExamAccountService = new AdminExamAccountService(adminExamAccountRepository)
+export const sendInvitation = new SendInvitationService(adminExamRepository,adminUserRepository,adminExamAccountService)
