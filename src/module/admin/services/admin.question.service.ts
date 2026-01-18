@@ -1,13 +1,11 @@
 import { CreateQuestionType } from "../dto/create-question.dto";
 import { UpdateQuestionType } from "../dto/update-question.dto";
 import { IQuestion } from "../repository/admin.question.repository";
+import { AdminOptionService } from "./admin.option.service";
 
 
 export class AdminQuestionService {
-    constructor(private readonly adminQuestionRepository: IQuestion) { }
-
-    
-
+    constructor(private readonly adminQuestionRepository: IQuestion, private readonly adminOptionService: AdminOptionService) { }
     async getQuestionWithOptions(examId: string) {
         return await this.adminQuestionRepository.findQuestionWithOptions(examId)
     }
@@ -17,7 +15,10 @@ export class AdminQuestionService {
     }
 
     async deleteQuestion(questionId: string) {
-        return await this.adminQuestionRepository.deleteQuestionById(questionId)
+        return await Promise.all([
+            this.adminOptionService.deleteOptionByQuestionId(questionId),
+            this.adminQuestionRepository.deleteQuestionById(questionId)
+        ])
     }
 
     async createQuestion(payload: CreateQuestionType) {

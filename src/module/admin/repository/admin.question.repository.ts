@@ -11,7 +11,6 @@ export interface IQuestion {
     findQuestionWithOptions(id: string): Promise<Test | null>
     deleteQuestionById(id: string): Promise<boolean>
     createQuestion(payload: CreateQuestionType): Promise<Question>
-    
     findQuestionsByExamID(id: string): Promise<Question[]>
 }
 
