@@ -364,7 +364,7 @@ admin.patch("/questions/:id", async (req: Request, res: Response) => {
     }
 })
 
-admin.patch("/options/:id", async (req: Request, res: Response) => {
+admin.put("/options/:id", async (req: Request, res: Response) => {
     try {
         const optionId = req.params.id
         const { text, isCorrect } = req.body
@@ -401,6 +401,7 @@ admin.delete("/questions/:id", async (req: Request, res: Response) => {
                 message: error.message
             });
         }
+        console.log(error)
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -451,7 +452,7 @@ admin.delete("/accounts/:id", async (req: Request, res: Response) => {
 })
 
 
-admin.delete("/exam/:examId",async (req: Request, res:Response) =>{
+admin.delete("/exams/:examId",async (req: Request, res:Response) =>{
     const {examId} = req.params
     try {
         const deleted = await adminExamService.deleteExamById(examId)

@@ -15,6 +15,10 @@ export class AdminOptionService {
     async deleteOption(optionId: string) {
         return await this.adminOptionRepository.deleteOptionById(optionId)
     }
+
+    async deleteOptionByQuestionId(questionId : string){
+        return await this.adminOptionRepository.deleteOptionByQuestionId(questionId)
+    }
     async getOptionsByQuestionID(id: string) {
         return await this.adminOptionRepository.findOptionByQuestionID(id)
     }

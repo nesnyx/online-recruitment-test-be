@@ -23,7 +23,7 @@ TestResult.belongsTo(Test, { foreignKey: "testId" });
 Question.hasMany(QuestionAnswer, { foreignKey: "questionId", as: "answers" });
 QuestionAnswer.belongsTo(Question, { foreignKey: "questionId" });
 
-Question.hasMany(Option, { foreignKey: "questionId", as: "options" });
+Question.hasMany(Option, { foreignKey: "questionId",onDelete: 'CASCADE' ,as: "options" });
 Option.belongsTo(Question, { foreignKey: "questionId" });
 
 Option.hasMany(QuestionAnswer, { foreignKey: "optionId", as: "answers" });
