@@ -1,8 +1,9 @@
 import { generateTokens } from "../../../config/jwt";
 import { AppError } from "../../../utils/app-error";
-import { IAdminRepository } from "../../admin/entity/admin.entity";
+import { AdminPositionService } from "../../admin/services/admin.position.service";
+
 import { AuthDto } from "../dto/auth.dto";
-import { IAuthRepository } from "../entity/auth.entity";
+import { IAuthRepository } from "../repository/auth.repository";
 
 export enum Role {
     ADMIN = 'ADMIN',
@@ -10,7 +11,7 @@ export enum Role {
 }
 
 export class AuthService {
-    constructor(private authRepository: IAuthRepository, private adminRepository: IAdminRepository) { }
+    constructor(private authRepository: IAuthRepository, private readonly positionService : AdminPositionService) { }
 
     async loginAdmin(payload: AuthDto) {
         const account = await this.authRepository.loginAdmin(payload)
@@ -27,7 +28,7 @@ export class AuthService {
         if (!account) {
             throw new AppError('Account not found', 404)
         }
-        const position = await this.adminRepository.findPositionById(account.positionId)
+        const position = await this.positionService.getPositionById(account.positionId)
         const generateToken = generateTokens(account.id, account.name, Role.USER, position.name)
         return generateToken
     }
