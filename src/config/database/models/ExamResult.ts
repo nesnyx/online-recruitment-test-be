@@ -55,11 +55,19 @@ TestResult.init(
         userId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"users",
+                key:"id"
+            }
         },
 
         testId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"tests",
+                key:"id"
+            }
         },
 
         startedAt: {

@@ -30,14 +30,26 @@ QuestionAnswer.init(
         questionId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"questions",
+                key:"id"
+            }
         },
         optionId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"options",
+                key:"id"
+            }
         },
         userId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"users",
+                key:"id"
+            }
         },
     },
     {
