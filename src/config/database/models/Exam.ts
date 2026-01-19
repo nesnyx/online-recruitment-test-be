@@ -59,13 +59,17 @@ Test.init(
         },
 
         category: {
-            type: DataTypes.STRING,
+            type: DataTypes.UUID,
             allowNull: true,
+            references: {
+                model: 'positions',
+                key: 'id',
+            }
         },
     },
     {
         sequelize,
-        paranoid:true,
+        paranoid: true,
         tableName: "tests",
     }
 );

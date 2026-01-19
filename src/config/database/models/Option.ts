@@ -30,6 +30,10 @@ Option.init(
         questionId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"questions",
+                key:"id"
+            }
         },
         text: {
             type: DataTypes.STRING,

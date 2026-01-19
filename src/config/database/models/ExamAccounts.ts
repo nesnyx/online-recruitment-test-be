@@ -33,11 +33,19 @@ ExamAccounts.init(
         examId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"tests",
+                key:"id"
+            }
         },
 
         accountId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"users",
+                key:"id"
+            }
         },
     },
     {
