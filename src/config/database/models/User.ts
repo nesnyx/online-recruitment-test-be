@@ -52,6 +52,10 @@ User.init(
             type: DataTypes.UUID,
             allowNull: true,
             defaultValue: null,
+            references:{
+                model:"positions",
+                key:"id"
+            }
         },
     },
     {

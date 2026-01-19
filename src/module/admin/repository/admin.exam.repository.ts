@@ -11,7 +11,7 @@ export interface IExam {
     findAllExams(): Promise<Test[]>
     findExamByID(id: string): Promise<Test>
     updateExamById(id: string, payload: UpdateExamType): Promise<Test>
-    
+
     deleteExamById(id: string): Promise<boolean>
 }
 
@@ -53,10 +53,10 @@ export class AdminExamRepository implements IExam {
                 'endAt',
                 [
                     Sequelize.literal(`(
-                        SELECT COUNT(*)
-                        FROM questions
-                        WHERE questions.testId = Test.id
-                    )`),
+                            SELECT COUNT(*)
+                            FROM "questions"
+                            WHERE "questions"."testId" = "Test"."id"
+                        )`),
                     'totalQuestions'
                 ]
             ],
@@ -64,7 +64,6 @@ export class AdminExamRepository implements IExam {
             include: [
                 {
                     model: this.position,
-
                     attributes: ['name']
                 }
             ]

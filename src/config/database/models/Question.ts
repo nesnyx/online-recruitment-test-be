@@ -28,6 +28,10 @@ Question.init(
         testId: {
             type: DataTypes.UUID,
             allowNull: false,
+            references:{
+                model:"tests",
+                key:"id"
+            }
         },
         text: {
             type: DataTypes.TEXT,
