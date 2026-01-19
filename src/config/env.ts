@@ -7,7 +7,10 @@ export const ENV = {
     NODE_ENV: process.env.NODE_ENV || "development",
     PORT: process.env.PORT,
     GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD,
-    GMAIL_APP_EMAIL: process.env.GMAIL_APP_EMAIL
+    GMAIL_APP_EMAIL: process.env.GMAIL_APP_EMAIL,
+    DB_NAME : process.env.DB_NAME,
+    DB_USERNAME:process.env.DB_USERNAME,
+    DB_PASSWORD: process.env.DB_PASSWORD
 };
 
 if (!ENV.JWT_ACCESS_SECRET || !ENV.JWT_REFRESH_SECRET) {
