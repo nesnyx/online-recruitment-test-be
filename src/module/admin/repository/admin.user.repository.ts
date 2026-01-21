@@ -29,7 +29,7 @@ export class AdminUserRepository implements IUser {
         }
     async findAllUserAccount(): Promise<User[]> {
             return await this.user.findAll({
-                attributes: ['id', 'username', 'password', 'name', 'email'],
+                attributes: ['id', 'username', 'password', 'name', 'email','createdAt'],
                 include: [
                     {
                         model: this.position,

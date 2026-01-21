@@ -32,7 +32,8 @@ export class AdminUserService {
             password: account.password,
             name: account.name,
             email: account.email,
-            position: account.positions?.name || 'No Position'
+            position: account.positions?.name || 'No Position',
+            createdAt : account.createAt
         }))
     }
 
