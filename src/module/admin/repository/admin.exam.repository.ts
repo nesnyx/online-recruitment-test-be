@@ -51,6 +51,7 @@ export class AdminExamRepository implements IExam {
                 'description',
                 'startAt',
                 'endAt',
+                'createdAt',
                 [
                     Sequelize.literal(`(
                             SELECT COUNT(*)

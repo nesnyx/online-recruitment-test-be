@@ -1,3 +1,4 @@
+
 import { CreateExamType } from "../dto/create-exam.dto";
 import { UpdateExamType } from "../dto/update-exam.dto";
 import { IExam } from "../repository/admin.exam.repository";
@@ -28,6 +29,7 @@ export class AdminExamService {
                 startAt: exam.startAt,
                 endAt: exam.endAt,
                 totalQuestions: exam.totalQuestions || exam.getDataValue('totalQuestions') || 0,
+                createdAt : exam.createdAt
             }))
         }
     
