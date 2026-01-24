@@ -1,11 +1,11 @@
 import express, { Request, Response } from "express";
-import { AuthRepository } from "../../module/auth/repository/auth.repository";
+import { AuthRepository } from "../../modules/auth/repository/auth.repository";
 import { Admin } from "../../config/database/models/Admin";
 import { User } from "../../config/database/models/User";
-import { AuthService } from "../../module/auth/services/auth.service";
+import { AuthService } from "../../modules/auth/services/auth.service";
 
-import { AuthDto } from "../../module/auth/dto/auth.dto";
-import { authMiddleware } from "../../module/middleware/auth";
+import { AuthDto } from "../../modules/auth/dto/auth.dto";
+import { authMiddleware } from "../../modules/middleware/auth";
 import { AppError } from "../../utils/app-error";
 import { adminExamAccountService, adminPositionService } from "../../container";
 import { verifyMagicLoginToken } from "../../config/jwt";

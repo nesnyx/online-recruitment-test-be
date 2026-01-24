@@ -26,7 +26,7 @@ export const magicLoginToken = (username: string, password: string) => {
     const token = jwt.sign(
         { username, password },
         ENV.JWT_SECRET_KEY_MAGIC_LOGIN!,
-        { expiresIn: '3d' }
+        { expiresIn: '5m' }
     )
     return token
 }
