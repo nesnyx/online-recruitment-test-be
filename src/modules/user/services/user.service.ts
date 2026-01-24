@@ -3,7 +3,7 @@ import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { AppError } from "../../../utils/app-error";
 import { AdminExamService } from "../../admin/services/admin.exam.service";
 import { AdminQuestionService } from "../../admin/services/admin.question.service";
-import { IUserRepository } from "../entity/user.entity";
+import { IUserRepository } from "../repository/user.repository";
 
 
 
