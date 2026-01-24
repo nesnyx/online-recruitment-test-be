@@ -452,14 +452,14 @@ admin.delete("/accounts/:id", async (req: Request, res: Response) => {
 })
 
 
-admin.delete("/exams/:examId",async (req: Request, res:Response) =>{
-    const {examId} = req.params
+admin.delete("/exams/:examId", async (req: Request, res: Response) => {
+    const { examId } = req.params
     try {
         const deleted = await adminExamService.deleteExamById(examId)
         res.status(200).json({
             success: true,
-            data:deleted
-        }) 
+            data: deleted
+        })
     } catch (error) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
