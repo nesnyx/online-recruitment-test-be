@@ -22,13 +22,13 @@ export class ApplicationModule {
             allowedHeaders: ["Content-Type", "Authorization"],
 
         }));
-        app.use(rateLimit.default({
-            windowMs: 15 * 60 * 1000,
-            max: 100,
-            message: 'Too many requests from this IP, please try again after 15 minutes',
-            standardHeaders: true,
-            legacyHeaders: false,
-        }));
+        // app.use(rateLimit.default({
+        //     windowMs: 15 * 60 * 1000,
+        //     max: 100,
+        //     message: 'Too many requests from this IP, please try again after 15 minutes',
+        //     standardHeaders: true,
+        //     legacyHeaders: false,
+        // }));
         app.use(express.json())
         app.use(morgan((tokens: any, req: any, res: any) => {
             const status = tokens.status(req, res);

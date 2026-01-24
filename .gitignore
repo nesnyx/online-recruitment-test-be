@@ -7,3 +7,4 @@ database.sqlite-shm
 database.sqlite-wal
 
 logs
+ecosystem.config.js
