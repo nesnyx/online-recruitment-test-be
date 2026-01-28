@@ -6,7 +6,7 @@ import { magicLoginToken } from "../config/jwt";
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
-    secure: false, // true untuk port 465, false untuk port lain
+    secure: false,
     auth: {
         user: ENV.GMAIL_APP_EMAIL,
         pass: ENV.GMAIL_APP_PASSWORD
@@ -14,7 +14,6 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendExamInvitation = async (to: string, name: string, examTitle: string, username: string, password: string, startAt: Date, endAt: Date, durationMinutes: number) => {
-
     const generateMagicLoginToken = magicLoginToken(username, password)
     const url = new URL(`${ENV.MAGIC_LOGIN_URL}/api/v1/auth/magic-login`);
     url.searchParams.append('t', generateMagicLoginToken);
