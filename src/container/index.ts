@@ -18,6 +18,7 @@ import { AdminOptionService } from "../modules/admin/services/admin.option.servi
 import { AdminPositionService } from "../modules/admin/services/admin.position.service";
 import { AdminQuestionService } from "../modules/admin/services/admin.question.service";
 import { AdminResultService } from "../modules/admin/services/admin.results.service";
+import { EventListener } from "../modules/admin/services/admin.send-invitation.listener";
 import { SendInvitationService } from "../modules/admin/services/admin.send-invitation.service";
 import { AdminUserService } from "../modules/admin/services/admin.user.service";
 
@@ -36,4 +37,5 @@ const adminResultRepository =new AdminResultsRepository(User, Test, TestResult)
 export const adminResultService = new AdminResultService(adminResultRepository)
 const adminExamAccountRepository = new AdminExamAccountRepository(ExamAccounts)
 export const adminExamAccountService = new AdminExamAccountService(adminExamAccountRepository)
-export const sendInvitation = new SendInvitationService(adminExamRepository,adminUserRepository,adminExamAccountService)
+export const sendInvitation = new SendInvitationService(adminExamRepository,adminUserRepository)
+export const eventListener = new EventListener(adminExamAccountService)
