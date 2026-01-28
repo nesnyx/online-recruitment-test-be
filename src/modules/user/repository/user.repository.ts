@@ -14,6 +14,7 @@ export interface IUserRepository {
     createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus): Promise<TestResult>
     findQuestionExam(examId: string): Promise<Question[]>
     updateExamResult(userId: string, status: TestResultStatus, score: number, correctCount: number, totalQuestions: number, submittedAt: Date,): Promise<TestResult | any>
+    updateStatus(userId : string, examId : string, stauts:TestResultStatus) : Promise<boolean>
     findQuestionWithCorrectAnswerOptionsByUserId(userId: string, examId: string,): Promise<QuestionAnswer[]>
     totalQuestionByExamId(examId: string,): Promise<number>
     findUserResultWithExam(userId: string, examId: string,): Promise<TestResult | null>
@@ -95,6 +96,14 @@ export class UserRepository implements IUserRepository {
                 attributes: ['id', 'durationMinutes'],
             }]
         });
+    }
+
+    async updateStatus(userId: string, examId: string, stauts: TestResultStatus): Promise<boolean> {
+        const [updatedRows] = await this.testResult.update(
+            { status: stauts },
+            { where: { userId, testId: examId } }
+        );
+        return updatedRows > 0;
     }
 
 }
