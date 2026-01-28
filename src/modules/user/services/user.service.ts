@@ -45,7 +45,6 @@ export class UserService {
         }
     }
 
-    // Untuk Get Jawaban yang sudah terjawab secara stateful
     async findQuestionAnswerByUserId(userId: string) {
         return await this.userRepository.findQuestionAnswerByUserId(userId)
     }
