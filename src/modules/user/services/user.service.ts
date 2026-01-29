@@ -1,6 +1,7 @@
 
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { AppError } from "../../../utils/app-error";
+import { eventBus } from "../../../utils/event-bus";
 import { AdminExamService } from "../../admin/services/admin.exam.service";
 import { AdminQuestionService } from "../../admin/services/admin.question.service";
 import { IUserRepository } from "../repository/user.repository";
@@ -8,7 +9,7 @@ import { IUserRepository } from "../repository/user.repository";
 
 
 export class UserService {
-    constructor(private readonly userRepository: IUserRepository,private readonly questionService : AdminQuestionService,private readonly examService : AdminExamService) { }
+    constructor(private readonly userRepository: IUserRepository, private readonly questionService: AdminQuestionService, private readonly examService: AdminExamService) { }
 
     async findByUserId(userId: string) {
         const user = await this.userRepository.findByUserId(userId)
@@ -74,14 +75,11 @@ export class UserService {
                 message: "Ujian sudah selesai dikerjakan dan dikirim."
             };
         }
-
-
         const startTime = userResult.startedAt.getTime();
         const durationMs = (exam.durationMinutes ?? 0) * 60 * 1000;
         const timeNow = Date.now();
         const timeElapsed = timeNow - startTime;
         const remainingMs = Math.max(0, durationMs - timeElapsed);
-
 
         if (remainingMs <= 0) {
             return {
@@ -90,7 +88,6 @@ export class UserService {
                 message: "Waktu ujian telah habis."
             };
         }
-
         return {
             user_id: userId,
             remaining_duration_ms: remainingMs,
@@ -99,7 +96,6 @@ export class UserService {
             is_exam_ongoing: true
         };
     }
-
 
 
     async startExam(userId: string, examId: string) {
@@ -112,6 +108,7 @@ export class UserService {
         if (!existingExam) throw new AppError("Exam not found", 404);
         const startAt = new Date(existingExam.startAt);
         const endAt = new Date(existingExam.endAt);
+        console.log("Exam StartAt:", startAt, "EndAt:", endAt, "Now:", timeNow);
         if (timeNow.getTime() < startAt.getTime()) throw new AppError("Ujian belum dimulai.", 400);
         if (timeNow.getTime() > endAt.getTime()) throw new AppError("Masa berlaku ujian telah berakhir.", 400);
         let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId);
@@ -148,8 +145,6 @@ export class UserService {
         return existingExamResult;
     }
 
-
-
     async submitExam(userId: string, examId: string) {
         const userResult = await this.userRepository.findUserResultWithExam(userId, examId);
         if (!userResult) {
@@ -162,7 +157,6 @@ export class UserService {
         const exam = (userResult as any).Test;
         const startTime = userResult.startedAt.getTime();
         const now = new Date().getTime();
-        let totalCorrect = 0;
 
         if (exam && exam.durationMinutes) {
             const durationMs = exam.durationMinutes * 60 * 1000;
@@ -172,26 +166,12 @@ export class UserService {
                 throw new Error("Waktu pengerjaan telah habis.");
             }
         }
-        const [userAnswers, totalQuestionsCount] = await Promise.all([
-            this.userRepository.findQuestionWithCorrectAnswerOptionsByUserId(userId, examId),
-            this.userRepository.totalQuestionByExamId(examId)
-        ])
-        userAnswers.forEach((answer: any) => {
-            const correctOptionId = answer.Question.options[0]?.id;
-            if (answer.optionId === correctOptionId) {
-                totalCorrect++;
-            }
-        });
-        const finalScore = totalQuestionsCount > 0 ? (totalCorrect / totalQuestionsCount) * 100 : 0;
-        await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, new Date())
+        
+        await this.userRepository.updateStatus(userId, examId, TestResultStatus.SUBMITTED);
+        eventBus.emit("user.exam.submitted", { userId, examId, submittedAt: new Date() });
         return {
-            score: finalScore,
-            summary: {
-                totalQuestions: totalQuestionsCount,
-                answered: userAnswers.length,
-                correct: totalCorrect,
-                incorrect: totalQuestionsCount - totalCorrect
-            }
+            message: "Ujian berhasil dikumpulkan. Hasil sedang diproses.",
+            status: TestResultStatus.SUBMITTED
         };
     }
 
