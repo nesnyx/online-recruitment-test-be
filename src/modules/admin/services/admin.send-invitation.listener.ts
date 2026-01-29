@@ -3,7 +3,7 @@ import { eventBus } from "../../../utils/event-bus";
 import { AdminExamAccountService } from "./admin.exam-account.service";
 import { sendExamInvitation } from "../../../utils/email-gateway";
 
-export class EventListener {
+export class AdminEventListener {
     constructor(private readonly adminExamAccountService: AdminExamAccountService) { }
 
     async withRetry<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {

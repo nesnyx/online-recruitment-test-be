@@ -1,5 +1,6 @@
 
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
+import { scheduleAutoSubmit } from "../../../queues/exam.queue";
 import { AppError } from "../../../utils/app-error";
 import { eventBus } from "../../../utils/event-bus";
 import { AdminExamService } from "../../admin/services/admin.exam.service";
@@ -58,7 +59,6 @@ export class UserService {
         ]);
 
         if (!exam) throw new AppError("Exam not found", 404);
-
         if (!userResult) {
             return {
                 is_allowed_to_start: true,
@@ -91,6 +91,7 @@ export class UserService {
         return {
             user_id: userId,
             remaining_duration_ms: remainingMs,
+            server_time_iso: new Date().toISOString(),
             remaining_duration_minutes: Math.floor(remainingMs / (60 * 1000)),
             is_allowed_to_start: false,
             is_exam_ongoing: true
@@ -112,11 +113,11 @@ export class UserService {
         if (timeNow.getTime() < startAt.getTime()) throw new AppError("Ujian belum dimulai.", 400);
         if (timeNow.getTime() > endAt.getTime()) throw new AppError("Masa berlaku ujian telah berakhir.", 400);
         let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId);
+        const durationMilliSeconds = (existingExam.durationMinutes ?? 0) * 60 * 1000;
         if (existingExamResult) {
             if (existingExamResult.status === TestResultStatus.SUBMITTED) {
                 throw new AppError("Ujian sudah selesai dikerjakan.", 400);
             }
-            const durationMilliSeconds = (existingExam.durationMinutes ?? 0) * 60 * 1000;
             const timeDiff = timeNow.getTime() - existingExamResult.startedAt.getTime();
             if (timeDiff > durationMilliSeconds) {
                 await this.userRepository.updateExamResult(
@@ -140,6 +141,7 @@ export class UserService {
                 0,
                 TestResultStatus.ONGOING,
             );
+            await scheduleAutoSubmit(userId, examId, durationMilliSeconds);
         }
 
         return existingExamResult;
@@ -166,13 +168,21 @@ export class UserService {
                 throw new Error("Waktu pengerjaan telah habis.");
             }
         }
-        
+
         await this.userRepository.updateStatus(userId, examId, TestResultStatus.SUBMITTED);
         eventBus.emit("user.exam.submitted", { userId, examId, submittedAt: new Date() });
         return {
             message: "Ujian berhasil dikumpulkan. Hasil sedang diproses.",
             status: TestResultStatus.SUBMITTED
         };
+    }
+
+
+    async getExamResultsByUserId(userId: string,examId : string) {
+        const existingUser = await this.userRepository.findByUserId(userId);
+        if (!existingUser) throw new AppError("User not found", 404);
+        const results = await this.userRepository.findExamResultsByUserId(userId,examId);
+        return results;
     }
 
 }
