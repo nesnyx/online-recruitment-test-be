@@ -3,7 +3,6 @@ import { AuthRepository } from "../../modules/auth/repository/auth.repository";
 import { Admin } from "../../config/database/models/Admin";
 import { User } from "../../config/database/models/User";
 import { AuthService } from "../../modules/auth/services/auth.service";
-
 import { AuthDto } from "../../modules/auth/dto/auth.dto";
 import { authMiddleware } from "../../modules/middleware/auth";
 import { AppError } from "../../utils/app-error";

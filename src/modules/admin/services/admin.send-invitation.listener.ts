@@ -24,7 +24,7 @@ export class EventListener {
                 console.log(`[Background] Memulai pengiriman email untuk ${users.length} user...`);
                 const emailPromises = users.map((user: any) => {
                     return limit(async () => {
-                        await this.adminExamAccountService.createExamAccounts(user.id, examId)
+                        // await this.adminExamAccountService.createExamAccounts(user.id, examId)
                         return sendExamInvitation(
                             user.email,
                             user.name,
