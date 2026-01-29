@@ -75,14 +75,11 @@ export class UserService {
                 message: "Ujian sudah selesai dikerjakan dan dikirim."
             };
         }
-
-
         const startTime = userResult.startedAt.getTime();
         const durationMs = (exam.durationMinutes ?? 0) * 60 * 1000;
         const timeNow = Date.now();
         const timeElapsed = timeNow - startTime;
         const remainingMs = Math.max(0, durationMs - timeElapsed);
-
 
         if (remainingMs <= 0) {
             return {
@@ -91,7 +88,6 @@ export class UserService {
                 message: "Waktu ujian telah habis."
             };
         }
-
         return {
             user_id: userId,
             remaining_duration_ms: remainingMs,
@@ -100,7 +96,6 @@ export class UserService {
             is_exam_ongoing: true
         };
     }
-
 
 
     async startExam(userId: string, examId: string) {

@@ -1,23 +1,14 @@
 import express, { Request, Response } from "express"
-import { UserService } from "../../modules/user/services/user.service"
-import { UserRepository } from "../../modules/user/repository/user.repository"
-import { User } from "../../config/database/models/User"
-import { Question } from "../../config/database/models/Question"
-import { QuestionAnswer } from "../../config/database/models/QuestionAnswer"
-import { TestResult } from "../../config/database/models/ExamResult"
-import { Test } from "../../config/database/models/Exam"
-import { Option } from "../../config/database/models/Option"
 import { authMiddleware, roleMiddleware } from "../../modules/middleware/auth"
 import { Role } from "../../modules/auth/services/auth.service"
 import { AppError } from "../../utils/app-error"
-import { adminExamAccountService, adminExamService, adminQuestionService } from "../../container"
+import { adminExamAccountService, userService } from "../../container"
 
 
 
 export const user = express.Router()
 
-const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
-const userService = new UserService(userRepository,adminQuestionService,adminExamService)
+
 
 
 user.use(authMiddleware(adminExamAccountService), roleMiddleware(Role.USER))

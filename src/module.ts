@@ -7,7 +7,7 @@ import { router } from "./routes";
 import helmet from "helmet";
 import { ENV } from "./config/env";
 import compression from "compression";
-import { eventListener } from "./container";
+import { eventListener, userEventListener } from "./container";
 import { corsMiddleware } from "./modules/middleware/cors";
 import { logging } from "./modules/middleware/logging";
 
@@ -24,6 +24,7 @@ export class ApplicationModule {
         app.use("/api/v1", router)
         app.use(compression());
         eventListener.handleSendInvitationEvent();
+        userEventListener.handleExamSubmittedEvent();
     }
 
     async start() {

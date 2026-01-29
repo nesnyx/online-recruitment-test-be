@@ -4,6 +4,7 @@ import { TestResult } from "../config/database/models/ExamResult";
 import { Option } from "../config/database/models/Option";
 import { Position } from "../config/database/models/Position";
 import { Question } from "../config/database/models/Question";
+import { QuestionAnswer } from "../config/database/models/QuestionAnswer";
 import { User } from "../config/database/models/User";
 import { AdminExamAccountRepository } from "../modules/admin/repository/admin.exam-account.repository";
 import { AdminExamRepository } from "../modules/admin/repository/admin.exam.repository";
@@ -21,9 +22,13 @@ import { AdminResultService } from "../modules/admin/services/admin.results.serv
 import { EventListener } from "../modules/admin/services/admin.send-invitation.listener";
 import { SendInvitationService } from "../modules/admin/services/admin.send-invitation.service";
 import { AdminUserService } from "../modules/admin/services/admin.user.service";
+import { UserRepository } from "../modules/user/repository/user.repository";
+import { UserEventListener } from "../modules/user/services/user.listener";
+import { UserService } from "../modules/user/services/user.service";
 
 
 const adminPositionRepository = new AdminPositionRepository(Position)
+
 const adminExamRepository = new AdminExamRepository(Test, Position)
 export const adminExamService = new AdminExamService(adminExamRepository,adminPositionRepository)
 export const adminPositionService = new AdminPositionService(adminPositionRepository)
@@ -38,4 +43,7 @@ export const adminResultService = new AdminResultService(adminResultRepository)
 const adminExamAccountRepository = new AdminExamAccountRepository(ExamAccounts)
 export const adminExamAccountService = new AdminExamAccountService(adminExamAccountRepository)
 export const sendInvitation = new SendInvitationService(adminExamRepository,adminUserRepository)
+const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
+export const userService = new UserService(userRepository,adminQuestionService,adminExamService)
 export const eventListener = new EventListener(adminExamAccountService)
+export const userEventListener = new UserEventListener(userRepository)

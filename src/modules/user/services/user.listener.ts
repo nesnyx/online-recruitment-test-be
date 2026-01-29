@@ -7,7 +7,7 @@ export class UserEventListener {
     }
     async handleExamSubmittedEvent() {
         eventBus.on("user.exam.submitted", async (payload: { userId: string, examId: string, submittedAt: Date }) => {
-            const { userId, examId, submittedAt } = payload;
+            const { userId, examId } = payload;
             let totalCorrect = 0;
             try {
                 const [userAnswers, totalQuestionsCount] = await Promise.all([
@@ -21,7 +21,7 @@ export class UserEventListener {
                     }
                 });
                 const finalScore = totalQuestionsCount > 0 ? (totalCorrect / totalQuestionsCount) * 100 : 0;
-                await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, submittedAt)
+                await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, new Date())
                 console.log(`[AutoGrade] Success: User ${userId} scored ${finalScore}`);
             } catch (error) {
                 console.error(`[AutoGrade] Error calculating score for User ${userId}:`, error);
