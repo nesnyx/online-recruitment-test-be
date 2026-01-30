@@ -14,10 +14,10 @@ export interface IUserRepository {
     createExamResult(userId: string, examId: string, startedAt: Date, score: number, correctCount: number, totalQuestions: number, status: TestResultStatus): Promise<TestResult>
     findQuestionExam(examId: string): Promise<Question[]>
     updateExamResult(userId: string, status: TestResultStatus, score: number, correctCount: number, totalQuestions: number, submittedAt: Date,): Promise<TestResult | any>
-    updateStatus(userId : string, examId : string, stauts:TestResultStatus) : Promise<boolean>
+    updateStatus(userId : string, examId : string, stauts:TestResultStatus,transaction : Transaction) : Promise<boolean>
     findQuestionWithCorrectAnswerOptionsByUserId(userId: string, examId: string,): Promise<QuestionAnswer[]>
     totalQuestionByExamId(examId: string,): Promise<number>
-    findUserResultWithExam(userId: string, examId: string,): Promise<TestResult | null>
+    findUserResultWithExam(userId: string, examId: string,transaction : Transaction): Promise<TestResult | null>
 }
 
 export class UserRepository implements IUserRepository {
@@ -86,7 +86,7 @@ export class UserRepository implements IUserRepository {
         return await this.question.count({ where: { testId: examId } })
     }
 
-    async findUserResultWithExam(userId: string, examId: string): Promise<TestResult | null> {
+    async findUserResultWithExam(userId: string, examId: string,transaction : Transaction): Promise<TestResult | null> {
         return await this.testResult.findOne({
             where: { userId, testId: examId },
             attributes: ['id', 'status', 'createdAt', 'startedAt'],
@@ -95,13 +95,15 @@ export class UserRepository implements IUserRepository {
                 // as: 'test',
                 attributes: ['id', 'durationMinutes'],
             }]
-        });
+            ,transaction});
     }
 
-    async updateStatus(userId: string, examId: string, stauts: TestResultStatus): Promise<boolean> {
+    async updateStatus(userId: string, examId: string, stauts: TestResultStatus,transaction:Transaction): Promise<boolean> {
         const [updatedRows] = await this.testResult.update(
+            
             { status: stauts },
-            { where: { userId, testId: examId } }
+            { where: { userId, testId: examId } ,transaction}
+            
         );
         return updatedRows > 0;
     }

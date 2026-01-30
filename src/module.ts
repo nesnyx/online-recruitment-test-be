@@ -7,10 +7,11 @@ import { router } from "./routes";
 import helmet from "helmet";
 import { ENV } from "./config/env";
 import compression from "compression";
-import { eventListener, userEventListener } from "./container";
+import { adminEventListener, userEventListener } from "./container";
 import { corsMiddleware } from "./modules/middleware/cors";
 import { logging } from "./modules/middleware/logging";
-
+import { logger } from "./utils/logger";
+import { examWorker } from "./workers/container.worker";
 
 
 export class ApplicationModule {
@@ -23,18 +24,25 @@ export class ApplicationModule {
         app.use(urlencoded({ extended: true }))
         app.use("/api/v1", router)
         app.use(compression());
-        eventListener.handleSendInvitationEvent();
-        userEventListener.handleExamSubmittedEvent();
     }
 
     async start() {
         const PORT = ENV.PORT
-        await this.sequelize.authenticate()
-        console.log('Database connection has been established successfully.')
-        await this.sequelize.sync()
-        console.log('Database synchronized successfully.')
-        this.app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`)
-        })
+        try {
+            await this.sequelize.authenticate();
+            logger.info('Database connection established.');
+            if (ENV.NODE_ENV !== 'production') {
+                await this.sequelize.sync();
+            }
+            adminEventListener.handleSendInvitationEvent();
+            userEventListener.handleExamSubmittedEvent();
+            await examWorker.submitExamWorker();
+            this.app.listen(PORT, () => {
+                logger.info(`Server is running on port ${PORT}`);
+            });
+        } catch (error) {
+            logger.error("Failed to start application", error);
+            process.exit(1);
+        }
     }
 }

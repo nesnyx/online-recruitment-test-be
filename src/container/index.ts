@@ -19,7 +19,7 @@ import { AdminOptionService } from "../modules/admin/services/admin.option.servi
 import { AdminPositionService } from "../modules/admin/services/admin.position.service";
 import { AdminQuestionService } from "../modules/admin/services/admin.question.service";
 import { AdminResultService } from "../modules/admin/services/admin.results.service";
-import { EventListener } from "../modules/admin/services/admin.send-invitation.listener";
+import { AdminEventListener } from "../modules/admin/services/admin.send-invitation.listener";
 import { SendInvitationService } from "../modules/admin/services/admin.send-invitation.service";
 import { AdminUserService } from "../modules/admin/services/admin.user.service";
 import { UserRepository } from "../modules/user/repository/user.repository";
@@ -45,5 +45,5 @@ export const adminExamAccountService = new AdminExamAccountService(adminExamAcco
 export const sendInvitation = new SendInvitationService(adminExamRepository,adminUserRepository)
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
 export const userService = new UserService(userRepository,adminQuestionService,adminExamService)
-export const eventListener = new EventListener(adminExamAccountService)
+export const adminEventListener = new AdminEventListener(adminExamAccountService)
 export const userEventListener = new UserEventListener(userRepository)
