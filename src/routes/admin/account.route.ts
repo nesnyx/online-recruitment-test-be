@@ -5,6 +5,7 @@ import { UpdateAccountType } from "../../modules/admin/dto/update-account.dto";
 import { Role } from "../../modules/auth/services/auth.service";
 import { roleMiddleware } from "../../modules/middleware/auth";
 import { AppError } from "../../utils/app-error";
+import { logger } from "../../utils/logger";
 
 export const account = express.Router()
 
@@ -15,14 +16,18 @@ account.get("/", async (req: Request, res: Response) => {
             success: true,
             data: users
         })
-    } catch (error) {
+    } catch (error:any) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
         }
-        console.log(error)
+        logger.error("Failed to create exam", {
+            error: error.message,
+            stack: error.stack,
+            payload: req.body
+        });
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -45,6 +50,11 @@ account.get("/:id", async (req: Request, res: Response) => {
                 message: error.message
             });
         }
+        logger.error("Failed to create exam", {
+            error: error.message,
+            stack: error.stack,
+            
+        });
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -62,13 +72,18 @@ account.post("/", async (req: Request, res: Response) => {
             data: user,
             message: "User created successfully"
         })
-    } catch (error) {
+    } catch (error : any) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
         }
+        logger.error("Failed to create exam", {
+            error: error.message,
+            stack: error.stack,
+            payload: req.body
+        });
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -90,14 +105,18 @@ account.patch("/:id", async (req: Request, res: Response) => {
             success: true,
             data: updatedUser
         })
-    } catch (error) {
+    } catch (error:any) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
         }
-
+        logger.error("Failed to create exam", {
+            error: error.message,
+            stack: error.stack,
+            payload: req.body
+        });
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -113,13 +132,18 @@ account.delete("/:id", async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
         })
-    } catch (error) {
+    } catch (error:any) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
         }
+        logger.error("Failed to create exam", {
+            error: error.message,
+            stack: error.stack,
+           
+        });
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
@@ -142,13 +166,18 @@ account.post("/invitation", roleMiddleware(Role.ADMIN), async (req: Request, res
             success: true,
             data: invitation
         })
-    } catch (error) {
+    } catch (error:any) {
         if (error instanceof AppError) {
             return res.status(error.statusCode).json({
                 status: "error",
                 message: error.message
             });
         }
+        logger.error("Failed to create exam", {
+            error: error.message,
+            stack: error.stack,
+            payload: req.body
+        });
         return res.status(500).json({
             status: "error",
             message: "Internal Server Error"
