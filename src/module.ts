@@ -11,6 +11,7 @@ import { adminEventListener, userEventListener } from "./container";
 import { corsMiddleware } from "./modules/middleware/cors";
 import { logging } from "./modules/middleware/logging";
 import "./workers/exam.worker"
+import { logger } from "./utils/logger";
 
 
 export class ApplicationModule {
@@ -30,11 +31,13 @@ export class ApplicationModule {
     async start() {
         const PORT = ENV.PORT
         await this.sequelize.authenticate()
-        console.log('Database connection has been established successfully.')
+        logger.info('Database connection has been established successfully.')
         await this.sequelize.sync()
-        console.log('Database synchronized successfully.')
+        logger.info('Database synchronized successfully.')
         this.app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`)
+            logger.info(`Server is running on port `, {
+                port: PORT
+            })
         })
     }
 }

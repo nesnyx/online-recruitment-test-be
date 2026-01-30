@@ -1,7 +1,7 @@
 import * as winston from 'winston';
 import 'winston-daily-rotate-file';
 
-const { combine, timestamp, printf, colorize, align } = winston.format;
+const { combine, timestamp, printf, colorize, align,json,errors } = winston.format;
 
 // Definisikan warna
 const colors: Record<string, string> = {
@@ -12,7 +12,7 @@ const colors: Record<string, string> = {
     reset: '\x1b[0m'    // Reset warna
 };
 
-// Tambahkan tipe data (any atau interface) pada parameter printf
+
 const consoleFormat = printf(({ level, message, timestamp }: any) => {
     let coloredMessage = String(message); // Pastikan message dianggap string
 
@@ -32,7 +32,9 @@ export const logger = winston.createLogger({
     level: 'info',
     format: combine(
         timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        align()
+        align(),
+        json(),
+        errors({ stack: true })
     ),
     transports: [
         new winston.transports.Console({
