@@ -28,17 +28,21 @@ export class ApplicationModule {
 
     async start() {
         const PORT = ENV.PORT
-        await this.sequelize.authenticate()
-        logger.info('Database connection has been established successfully.')
-        await this.sequelize.sync()
-        logger.info('Database synchronized successfully.')
-        adminEventListener.handleSendInvitationEvent();
-        userEventListener.handleExamSubmittedEvent();
-        examWorker.submitExamWorker();
-        this.app.listen(PORT, () => {
-            logger.info(`Server is running on port `, {
-                port: PORT
-            })
-        })
+        try {
+            await this.sequelize.authenticate();
+            logger.info('Database connection established.');
+            if (ENV.NODE_ENV !== 'production') {
+                await this.sequelize.sync();
+            }
+            adminEventListener.handleSendInvitationEvent();
+            userEventListener.handleExamSubmittedEvent();
+            await examWorker.submitExamWorker();
+            this.app.listen(PORT, () => {
+                logger.info(`Server is running on port ${PORT}`);
+            });
+        } catch (error) {
+            logger.error("Failed to start application", error);
+            process.exit(1);
+        }
     }
 }

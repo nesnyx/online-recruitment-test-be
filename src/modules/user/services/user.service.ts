@@ -1,4 +1,5 @@
 
+import { Sequelize } from "sequelize";
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { scheduleAutoSubmit } from "../../../queues/exam.queue";
 import { AppError } from "../../../utils/app-error";
@@ -10,7 +11,7 @@ import { IUserRepository } from "../repository/user.repository";
 
 
 export class UserService {
-    constructor(private readonly userRepository: IUserRepository, private readonly questionService: AdminQuestionService, private readonly examService: AdminExamService) { }
+    constructor(private readonly userRepository: IUserRepository, private readonly questionService: AdminQuestionService, private readonly examService: AdminExamService, private sequelize: Sequelize) { }
 
     async findByUserId(userId: string) {
         const user = await this.userRepository.findByUserId(userId)
@@ -148,40 +149,43 @@ export class UserService {
     }
 
     async submitExam(userId: string, examId: string) {
-        const userResult = await this.userRepository.findUserResultWithExam(userId, examId);
-        if (!userResult) {
-            throw new AppError("Sesi pengerjaan tidak ditemukan.", 404);
-        }
-
-        if (userResult.status === TestResultStatus.SUBMITTED) {
-            throw new AppError("Ujian sudah disubmit sebelumnya.", 400);
-        }
-        const exam = (userResult as any).Test;
-        const startTime = userResult.startedAt.getTime();
-        const now = new Date().getTime();
-
-        if (exam && exam.durationMinutes) {
-            const durationMs = exam.durationMinutes * 60 * 1000;
-            const toleranceMs = 30 * 1000;
-
-            if (now > (startTime + durationMs + toleranceMs)) {
-                throw new Error("Waktu pengerjaan telah habis.");
+        const transaction = await this.sequelize.transaction();
+        try {
+            const userResult = await this.userRepository.findUserResultWithExam(userId, examId, transaction);
+            if (!userResult || userResult.status === TestResultStatus.SUBMITTED) {
+                await transaction.rollback();
+                throw new AppError("Ujian sudah disubmit atau tidak ditemukan.", 400);
             }
-        }
+            const exam = (userResult as any).Test;
+            const startTime = userResult.startedAt.getTime();
+            const now = new Date().getTime();
 
-        await this.userRepository.updateStatus(userId, examId, TestResultStatus.SUBMITTED);
-        eventBus.emit("user.exam.submitted", { userId, examId, submittedAt: new Date() });
-        return {
-            message: "Ujian berhasil dikumpulkan. Hasil sedang diproses.",
-            status: TestResultStatus.SUBMITTED
-        };
+            if (exam && exam.durationMinutes) {
+                const durationMs = exam.durationMinutes * 60 * 1000;
+                const toleranceMs = 30 * 1000;
+
+                if (now > (startTime + durationMs + toleranceMs)) {
+                    throw new Error("Waktu pengerjaan telah habis.");
+                }
+            }
+            await this.userRepository.updateStatus(userId, examId, TestResultStatus.SUBMITTED, transaction);
+            await transaction.commit();
+            eventBus.emit("user.exam.submitted", { userId, examId, submittedAt: new Date() });
+            return {
+                message: "Ujian berhasil dikumpulkan. Hasil sedang diproses.",
+                status: TestResultStatus.SUBMITTED
+            };
+        } catch (error) {
+            if (transaction) await transaction.rollback();
+            throw error;
+        }
     }
 
 
-    async getExamResultsByUserId(userId: string,examId : string) {
+    async getExamResultsByUserId(userId: string, examId: string) {
         const existingUser = await this.userRepository.findByUserId(userId);
         if (!existingUser) throw new AppError("User not found", 404);
-        const results = await this.userRepository.findExamResultsByUserId(userId,examId);
+        const results = await this.userRepository.findExamResultsByUserId(userId, examId);
         return results;
     }
 
