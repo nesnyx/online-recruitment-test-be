@@ -10,8 +10,8 @@ import compression from "compression";
 import { adminEventListener, userEventListener } from "./container";
 import { corsMiddleware } from "./modules/middleware/cors";
 import { logging } from "./modules/middleware/logging";
-import "./workers/exam.worker"
 import { logger } from "./utils/logger";
+import { examWorker } from "./workers/container.worker";
 
 
 export class ApplicationModule {
@@ -24,8 +24,6 @@ export class ApplicationModule {
         app.use(urlencoded({ extended: true }))
         app.use("/api/v1", router)
         app.use(compression());
-        adminEventListener.handleSendInvitationEvent();
-        userEventListener.handleExamSubmittedEvent();
     }
 
     async start() {
@@ -34,6 +32,9 @@ export class ApplicationModule {
         logger.info('Database connection has been established successfully.')
         await this.sequelize.sync()
         logger.info('Database synchronized successfully.')
+        adminEventListener.handleSendInvitationEvent();
+        userEventListener.handleExamSubmittedEvent();
+        examWorker.submitExamWorker();
         this.app.listen(PORT, () => {
             logger.info(`Server is running on port `, {
                 port: PORT
