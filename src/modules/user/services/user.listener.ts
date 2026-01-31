@@ -1,5 +1,6 @@
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
 import { eventBus } from "../../../utils/event-bus";
+import { logger } from "../../../utils/logger";
 import { IUserRepository } from "../repository/user.repository";
 
 export class UserEventListener {
@@ -22,9 +23,9 @@ export class UserEventListener {
                 });
                 const finalScore = totalQuestionsCount > 0 ? (totalCorrect / totalQuestionsCount) * 100 : 0;
                 await this.userRepository.updateExamResult(userId, TestResultStatus.SUBMITTED, finalScore, totalCorrect, totalQuestionsCount, new Date())
-                console.log(`[AutoGrade] Success: User ${userId} scored ${finalScore}`);
+                logger.info(`[AutoGrade] Success: User ${userId} scored ${finalScore}`);
             } catch (error) {
-                console.error(`[AutoGrade] Error calculating score for User ${userId}:`, error);
+                logger.error(`[AutoGrade] Error calculating score for User ${userId}:`, error);
             }
         })
     }

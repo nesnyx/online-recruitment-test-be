@@ -2,6 +2,7 @@
 import * as nodemailer from "nodemailer";
 import { ENV } from "../config/env";
 import { magicLoginToken } from "../config/jwt";
+import { logger } from "./logger";
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -138,9 +139,9 @@ export const sendExamInvitation = async (to: string, name: string, examTitle: st
 
     try {
         await transporter.sendMail(mailOptions);
-        console.log(`Email terkirim ke: ${to}`);
+        logger.info(`Email terkirim ke: ${to}`);
     } catch (error) {
-        console.error("Gagal mengirim email:", error);
+        logger.error("Gagal mengirim email:", error);
         throw error;
     }
 };

@@ -11,7 +11,7 @@ import { adminEventListener, userEventListener } from "./container";
 import { corsMiddleware } from "./modules/middleware/cors";
 import { logging } from "./modules/middleware/logging";
 import { logger } from "./utils/logger";
-import { examWorker } from "./workers/container.worker";
+import "./workers/exam.worker"
 
 
 export class ApplicationModule {
@@ -36,7 +36,7 @@ export class ApplicationModule {
             }
             adminEventListener.handleSendInvitationEvent();
             userEventListener.handleExamSubmittedEvent();
-            await examWorker.submitExamWorker();
+
             this.app.listen(PORT, () => {
                 logger.info(`Server is running on port ${PORT}`);
             });

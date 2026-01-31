@@ -8,15 +8,17 @@ export const examQueue = new Queue('exam-processing', {
 });
 
 export const scheduleAutoSubmit = async (userId: string, examId: string, delayMs: number) => {
-  const jobId = `auto-submit-${userId}-${examId}`; // ID Unik agar tidak double job untuk user yang sama
+  const jobId = `auto-submit-${userId}-${examId}`; 
   await examQueue.add(
     'auto-submit-action',
     { userId, examId },
     {
       delay: delayMs,
       jobId: jobId,
-      removeOnComplete: true, // Bersihkan jika sudah sukses
-      attempts: 3,            // Coba lagi jika worker error (misal DB down)
+      removeOnComplete: true, 
+      removeOnFail:true,
+      keepLogs:0,
+      attempts: 3,            
       backoff: {
         type: 'exponential',
         delay: 1000,
@@ -24,7 +26,7 @@ export const scheduleAutoSubmit = async (userId: string, examId: string, delayMs
     }
   );
 
-  logger.info(`[Queue] Job dijadwalkan untuk ${userId} dalam ${delayMs / 1000} detik`, {
+  logger.info(`[Queue] Job dijadwalkan untuk ${jobId} dalam ${delayMs / 1000} detik`, {
     jobId,
     userId,
     examId,
