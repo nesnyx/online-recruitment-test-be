@@ -7,6 +7,7 @@ import { eventBus } from "../../../utils/event-bus";
 import { AdminExamService } from "../../admin/services/admin.exam.service";
 import { AdminQuestionService } from "../../admin/services/admin.question.service";
 import { IUserRepository } from "../repository/user.repository";
+import { logger } from "../../../utils/logger";
 
 
 
@@ -110,11 +111,13 @@ export class UserService {
         if (!existingExam) throw new AppError("Exam not found", 404);
         const startAt = new Date(existingExam.startAt);
         const endAt = new Date(existingExam.endAt);
-        console.log("Exam StartAt:", startAt, "EndAt:", endAt, "Now:", timeNow);
+        
         if (timeNow.getTime() < startAt.getTime()) throw new AppError("Ujian belum dimulai.", 400);
         if (timeNow.getTime() > endAt.getTime()) throw new AppError("Masa berlaku ujian telah berakhir.", 400);
         let existingExamResult = await this.userRepository.findExamResultsByUserId(userId, examId);
         const durationMilliSeconds = (existingExam.durationMinutes ?? 0) * 60 * 1000;
+        logger.info(`[StartExam] User ${userId} is starting Exam ${examId} at ${timeNow.toISOString()}`);
+        logger.info(`[StartExam] Exam Duration (ms): ${durationMilliSeconds}`);
         if (existingExamResult) {
             if (existingExamResult.status === TestResultStatus.SUBMITTED) {
                 throw new AppError("Ujian sudah selesai dikerjakan.", 400);

@@ -1,3 +1,4 @@
+import { sequelize } from "../config/database/database";
 import { Test } from "../config/database/models/Exam";
 import { ExamAccounts } from "../config/database/models/ExamAccounts";
 import { TestResult } from "../config/database/models/ExamResult";
@@ -44,6 +45,6 @@ const adminExamAccountRepository = new AdminExamAccountRepository(ExamAccounts)
 export const adminExamAccountService = new AdminExamAccountService(adminExamAccountRepository)
 export const sendInvitation = new SendInvitationService(adminExamRepository,adminUserRepository)
 const userRepository = new UserRepository(User, QuestionAnswer, TestResult, Question, Test, Option)
-export const userService = new UserService(userRepository,adminQuestionService,adminExamService)
+export const userService = new UserService(userRepository,adminQuestionService,adminExamService,sequelize)
 export const adminEventListener = new AdminEventListener(adminExamAccountService)
 export const userEventListener = new UserEventListener(userRepository)
