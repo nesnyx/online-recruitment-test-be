@@ -4,7 +4,7 @@ import { userService } from '../container';
 import { logger } from '../utils/logger';
 
 
-const examWorker = new Worker(
+export const examWorker = new Worker(
     'exam-processing',
     async (job: Job) => {
         const { userId, examId } = job.data;
@@ -24,4 +24,3 @@ examWorker.on('failed', (job, err) => {
     logger.error(`[Worker] Job ${job?.id} gagal: ${err.message}`);
 });
 
-export default examWorker

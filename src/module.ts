@@ -36,7 +36,7 @@ export class ApplicationModule {
             }
             adminEventListener.handleSendInvitationEvent();
             userEventListener.handleExamSubmittedEvent();
-
+            
             this.app.listen(PORT, () => {
                 logger.info(`Server is running on port ${PORT}`);
             });

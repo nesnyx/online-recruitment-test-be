@@ -1,4 +1,5 @@
 import { TestResultStatus } from "../../../config/database/models/ExamResult";
+import { AppError } from "../../../utils/app-error";
 import { eventBus } from "../../../utils/event-bus";
 import { logger } from "../../../utils/logger";
 import { IUserRepository } from "../repository/user.repository";
@@ -15,7 +16,11 @@ export class UserEventListener {
                     this.userRepository.findQuestionWithCorrectAnswerOptionsByUserId(userId, examId),
                     this.userRepository.totalQuestionByExamId(examId)
                 ])
-                userAnswers.forEach((answer: any) => {
+                if (!Array.isArray(userAnswers)) {
+                    throw new AppError("Expected userAnswers to be an array",400);
+                }
+
+                userAnswers.forEach((answer:any) => {
                     const correctOptionId = answer.Question.options[0]?.id;
                     if (answer.optionId === correctOptionId) {
                         totalCorrect++;
